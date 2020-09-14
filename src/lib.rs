@@ -1,10 +1,13 @@
 mod call_graph;
+mod control_flow_graph;
 mod functions_by_type;
 
 pub use crate::call_graph::CallGraph;
+pub use crate::control_flow_graph::ControlFlowGraph;
 pub use crate::functions_by_type::FunctionsByType;
 use llvm_ir::Module;
 use std::cell::{RefMut, RefCell};
+use std::collections::HashMap;
 
 /// Computes (and caches the results of) various analyses on a given `Module`
 pub struct Analysis<'m> {
@@ -16,6 +19,9 @@ pub struct Analysis<'m> {
     /// `FunctionsByType`, which allows you to iterate over functions by type.
     /// This is `None` if not computed yet
     functions_by_type: RefCell<Option<FunctionsByType<'m>>>,
+    /// Map from function name to the `ControlFlowGraph` for that function.
+    /// The hashmap starts empty and is populated on demand.
+    control_flow_graphs: RefCell<HashMap<&'m str, ControlFlowGraph<'m>>>,
 }
 
 impl<'m> Analysis<'m> {
@@ -28,6 +34,7 @@ impl<'m> Analysis<'m> {
             module,
             call_graph: RefCell::new(None),
             functions_by_type: RefCell::new(None),
+            control_flow_graphs: RefCell::new(HashMap::new())
         }
     }
 
@@ -45,6 +52,18 @@ impl<'m> Analysis<'m> {
         let refmut = self.functions_by_type.borrow_mut();
         RefMut::map(refmut, |o| o.get_or_insert_with(|| {
             FunctionsByType::new(self.module)
+        }))
+    }
+
+    /// Get the `ControlFlowGraph` for the function with the given name
+    ///
+    /// Panics if no function of that name exists in the `Module`.
+    pub fn control_flow_graph(&self, func_name: &'m str) -> RefMut<ControlFlowGraph<'m>> {
+        let refmut = self.control_flow_graphs.borrow_mut();
+        RefMut::map(refmut, |map| map.entry(func_name).or_insert_with(|| {
+            let func = self.module.get_func_by_name(func_name)
+                .unwrap_or_else(|| panic!("Function named {:?} not found in the Module", func_name));
+            ControlFlowGraph::new(func)
         }))
     }
 }

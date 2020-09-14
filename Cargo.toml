@@ -11,6 +11,10 @@ either = "1.5.3"
 llvm-ir = "0.7.1"
 petgraph = { version = "0.5.1", default-features = false, features = ["graphmap"] }
 
+[dev-dependencies]
+env_logger = "0.7.1"
+itertools = "0.9"
+
 [features]
 # Select the LLVM version to be compatible with.
 # You _must_ enable exactly one of the following features.
