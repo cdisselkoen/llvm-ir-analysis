@@ -34,15 +34,15 @@ impl<'m> Analysis<'m> {
             module,
             call_graph: RefCell::new(None),
             functions_by_type: RefCell::new(None),
-            control_flow_graphs: RefCell::new(HashMap::new())
+            control_flow_graphs: RefCell::new(HashMap::new()),
         }
     }
 
     /// Get the `CallGraph` for the `Module`
     pub fn call_graph(&self) -> RefMut<CallGraph<'m>> {
-        let functions_by_type = self.functions_by_type(); // for the borrow checker, so we can use `functions_by_type` below without borrowing `self`
         let refmut = self.call_graph.borrow_mut();
         RefMut::map(refmut, |o| o.get_or_insert_with(|| {
+            let functions_by_type = self.functions_by_type();
             CallGraph::new(self.module, &functions_by_type)
         }))
     }
