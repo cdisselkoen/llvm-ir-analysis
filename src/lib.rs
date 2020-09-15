@@ -4,7 +4,7 @@ mod dominator_tree;
 mod functions_by_type;
 
 pub use crate::call_graph::CallGraph;
-pub use crate::control_flow_graph::ControlFlowGraph;
+pub use crate::control_flow_graph::{CFGNode, ControlFlowGraph};
 pub use crate::dominator_tree::DominatorTree;
 pub use crate::functions_by_type::FunctionsByType;
 use llvm_ir::Module;
