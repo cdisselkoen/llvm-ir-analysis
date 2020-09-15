@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 either = "1.5.3"
 llvm-ir = "0.7.1"
+log = "0.4.8"
 petgraph = { version = "0.5.1", default-features = false, features = ["graphmap"] }
 
 [dev-dependencies]

@@ -5,7 +5,10 @@ use petgraph::prelude::{DiGraphMap, Direction};
 pub struct ControlFlowGraph<'m> {
     /// The graph itself. Nodes are basic block names, and an edge from bbX to
     /// bbY indicates that control may (immediately) flow from bbX to bbY
-    graph: DiGraphMap<&'m Name, ()>,
+    pub(crate) graph: DiGraphMap<&'m Name, ()>,
+
+    /// Name of the entry node
+    entry_node: &'m Name,
 }
 
 impl<'m> ControlFlowGraph<'m> {
@@ -66,6 +69,7 @@ impl<'m> ControlFlowGraph<'m> {
 
         Self {
             graph,
+            entry_node: &function.basic_blocks[0].name,
         }
     }
 
@@ -77,5 +81,10 @@ impl<'m> ControlFlowGraph<'m> {
     /// Get the successors of the basic block with the given `Name`
     pub fn succs<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = &'m Name> + 's {
         self.graph.neighbors_directed(block, Direction::Outgoing)
+    }
+
+    /// Get the `Name` of the entry block for the function
+    pub fn entry(&self) -> &'m Name {
+        self.entry_node
     }
 }

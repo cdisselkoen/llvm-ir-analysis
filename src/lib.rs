@@ -1,9 +1,11 @@
 mod call_graph;
 mod control_flow_graph;
+mod dominator_tree;
 mod functions_by_type;
 
 pub use crate::call_graph::CallGraph;
 pub use crate::control_flow_graph::ControlFlowGraph;
+pub use crate::dominator_tree::DominatorTree;
 pub use crate::functions_by_type::FunctionsByType;
 use llvm_ir::Module;
 use std::cell::{RefMut, RefCell};
@@ -22,6 +24,9 @@ pub struct Analysis<'m> {
     /// Map from function name to the `ControlFlowGraph` for that function.
     /// The hashmap starts empty and is populated on demand.
     control_flow_graphs: RefCell<HashMap<&'m str, ControlFlowGraph<'m>>>,
+    /// Map from function name to the `DominatorTree` for that function.
+    /// The hashmap starts empty and is populated on demand.
+    dominator_trees: RefCell<HashMap<&'m str, DominatorTree<'m>>>,
 }
 
 impl<'m> Analysis<'m> {
@@ -35,6 +40,7 @@ impl<'m> Analysis<'m> {
             call_graph: RefCell::new(None),
             functions_by_type: RefCell::new(None),
             control_flow_graphs: RefCell::new(HashMap::new()),
+            dominator_trees: RefCell::new(HashMap::new()),
         }
     }
 
@@ -64,6 +70,17 @@ impl<'m> Analysis<'m> {
             let func = self.module.get_func_by_name(func_name)
                 .unwrap_or_else(|| panic!("Function named {:?} not found in the Module", func_name));
             ControlFlowGraph::new(func)
+        }))
+    }
+
+    /// Get the `DominatorTree` for the function with the given name
+    ///
+    /// Panics if no function of that name exists in the `Module`.
+    pub fn dominator_tree(&self, func_name: &'m str) -> RefMut<DominatorTree<'m>> {
+        let refmut = self.dominator_trees.borrow_mut();
+        RefMut::map(refmut, |map| map.entry(func_name).or_insert_with( || {
+            let cfg = self.control_flow_graph(func_name);
+            DominatorTree::new(&cfg)
         }))
     }
 }

@@ -151,12 +151,6 @@ fn functions_by_type() {
     assert_eq!(func_names, vec!["mixed_bitwidths"]);
 }
 
-/// Get the name of the entry block in the given function
-fn get_entry_block_name<'m>(module: &'m Module, funcname: &str) -> &'m Name {
-    let func = module.get_func_by_name(funcname).unwrap();
-    &func.basic_blocks[0].name
-}
-
 #[test]
 fn trivial_cfgs() {
     init_logging();
@@ -181,7 +175,7 @@ fn trivial_cfgs() {
         "mixed_bitwidths",
     ] {
         let cfg = analysis.control_flow_graph(func_name);
-        let entry = get_entry_block_name(&module, func_name);
+        let entry = cfg.entry();
         assert_eq!(cfg.preds(entry).count(), 0);
         assert_eq!(cfg.succs(entry).count(), 0);
     }
@@ -375,4 +369,127 @@ fn has_switch_cfg() {
     ]);
     let bb14_succs: Vec<&Name> = cfg.succs(&bb14_name).sorted().collect();
     assert!(bb14_succs.is_empty());
+}
+
+#[test]
+fn trivial_domtrees() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+
+    for func_name in &[
+        "no_args_zero",
+        "no_args_nozero",
+        "one_arg",
+        "two_args",
+        "three_args",
+        "four_args",
+        "five_args",
+        "binops",
+        "conditional_with_and",
+        "int8t",
+        "int16t",
+        "int32t",
+        "int64t",
+        "mixed_bitwidths",
+    ] {
+        let domtree = analysis.dominator_tree(func_name);
+        let entry = domtree.entry();
+        assert_eq!(domtree.idom(entry), None);
+        assert_eq!(domtree.children(entry).count(), 0);
+    }
+}
+
+#[test]
+fn conditional_true_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("conditional_true");
+
+    let bb2_name = Name::from(2);
+    assert_eq!(domtree.idom(&bb2_name), None);
+    let children: Vec<&Name> = domtree.children(&bb2_name).sorted().collect();
+    assert_eq!(children, vec![&Name::from(4), &Name::from(8), &Name::from(12)]);
+
+    let bb4_name = Name::from(4);
+    assert_eq!(domtree.idom(&bb4_name), Some(&Name::from(2)));
+    let children: Vec<&Name> = domtree.children(&bb4_name).sorted().collect();
+    assert!(children.is_empty());
+
+    let bb8_name = Name::from(8);
+    assert_eq!(domtree.idom(&bb8_name), Some(&Name::from(2)));
+    let children: Vec<&Name> = domtree.children(&bb8_name).sorted().collect();
+    assert!(children.is_empty());
+
+    let bb12_name = Name::from(12);
+    assert_eq!(domtree.idom(&bb8_name), Some(&Name::from(2)));
+    let children: Vec<&Name> = domtree.children(&bb12_name).sorted().collect();
+    assert!(children.is_empty());
+}
+
+#[test]
+fn conditional_false_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("conditional_false");
+
+    let bb2_name = Name::from(2);
+    assert_eq!(domtree.idom(&bb2_name), None);
+    let children: Vec<&Name> = domtree.children(&bb2_name).sorted().collect();
+    assert_eq!(children, vec![&Name::from(4), &Name::from(8), &Name::from(12)]);
+
+    let bb4_name = Name::from(4);
+    assert_eq!(domtree.idom(&bb4_name), Some(&Name::from(2)));
+    let children: Vec<&Name> = domtree.children(&bb4_name).sorted().collect();
+    assert!(children.is_empty());
+
+    let bb8_name = Name::from(8);
+    assert_eq!(domtree.idom(&bb8_name), Some(&Name::from(2)));
+    let children: Vec<&Name> = domtree.children(&bb8_name).sorted().collect();
+    assert!(children.is_empty());
+
+    let bb12_name = Name::from(12);
+    assert_eq!(domtree.idom(&bb8_name), Some(&Name::from(2)));
+    let children: Vec<&Name> = domtree.children(&bb12_name).sorted().collect();
+    assert!(children.is_empty());
+}
+
+#[test]
+fn conditional_nozero_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("conditional_nozero");
+
+    assert_eq!(domtree.idom(&Name::from(2)), None);
+    assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(2)));
+    assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(4)));
+    assert_eq!(domtree.idom(&Name::from(8)), Some(&Name::from(4)));
+    assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(8)));
+    assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(8)));
+    assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
+}
+
+#[test]
+fn has_switch_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("has_switch");
+
+    assert_eq!(domtree.idom(&Name::from(2)), None);
+    assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(2)));
+    assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(2)));
+    assert_eq!(domtree.idom(&Name::from(7)), Some(&Name::from(2)));
+    assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(2)));
+    assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(2)));
+    assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(2)));
+    assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
 }

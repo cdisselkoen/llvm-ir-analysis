@@ -17,6 +17,15 @@ fn while_loop_cfg() {
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("while_loop");
 
+    // CFG:
+    //  1
+    //  |   _
+    //  | /   \   (self-loop on 6)
+    //  6 -- /
+    //  |
+    //  |
+    //  12
+
     let bb1_name = Name::from(1);
     let bb1_preds: Vec<&Name> = cfg.preds(&bb1_name).sorted().collect();
     assert!(bb1_preds.is_empty());
@@ -43,6 +52,13 @@ fn for_loop_cfg() {
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("for_loop");
+
+    // CFG:
+    //  1      _
+    //  | \  /   \
+    //  |  9 -- /
+    //  | /
+    //  6
 
     let bb1_name = Name::from(1);
     let bb1_preds: Vec<&Name> = cfg.preds(&bb1_name).sorted().collect();
@@ -71,6 +87,17 @@ fn loop_zero_iterations_cfg() {
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("loop_zero_iterations");
+
+    // CFG:
+    //   1
+    //   | \
+    //   |  5     _
+    //   |  | \ /   \
+    //   |  | 11 - /
+    //   |  | /
+    //   |  8
+    //   | /
+    //  18
 
     let bb1_name = Name::from(1);
     let bb1_preds: Vec<&Name> = cfg.preds(&bb1_name).sorted().collect();
@@ -110,6 +137,19 @@ fn loop_with_cond_cfg() {
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("loop_with_cond");
+
+    // CFG:
+    //   1
+    //   |
+    //   6 <---
+    //   | \    \
+    //   |  10   |
+    //   | / |   |
+    //  13  /    |
+    //   | /    /
+    //  16 --->
+    //   |
+    //  20
 
     let bb1_name = Name::from(1);
     let bb1_preds: Vec<&Name> = cfg.preds(&bb1_name).sorted().collect();
@@ -157,6 +197,13 @@ fn loop_inside_cond_cfg() {
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("loop_inside_cond");
 
+    // CFG:
+    //      1      _
+    //    /   \  /   \
+    //  11     5 -- /
+    //    \   /
+    //     12
+
     let bb1_name = Name::from(1);
     let bb1_preds: Vec<&Name> = cfg.preds(&bb1_name).sorted().collect();
     assert!(bb1_preds.is_empty());
@@ -183,12 +230,23 @@ fn loop_inside_cond_cfg() {
 }
 
 #[test]
-fn search_array() {
+fn search_array_cfg() {
     init_logging();
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("search_array");
+
+    // CFG:
+    //      1   _
+    //      | /   \
+    //      4 -- /
+    //      |
+    //     11 <---- \
+    //    /  \       |
+    //  19    16 --> /
+    //    \  /
+    //     21
 
     let bb1_name = Name::from(1);
     let bb1_preds: Vec<&Name> = cfg.preds(&bb1_name).sorted().collect();
@@ -228,19 +286,30 @@ fn search_array() {
 }
 
 #[test]
-fn nested_loop() {
+fn nested_loop_cfg() {
     init_logging();
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("nested_loop");
 
+    // CFG:
+    //  1
+    //  | \
+    //  |  5 <----
+    //  |  |   _   \
+    //  |  | /  |   |
+    //  | 13 -- /   |
+    //  |  |       /
+    //  | 10 ---->
+    //  | /
+    //  7
+
     let bb1_name = Name::from(1);
     let bb1_preds: Vec<&Name> = cfg.preds(&bb1_name).sorted().collect();
     assert!(bb1_preds.is_empty());
     let bb1_succs: Vec<&Name> = cfg.succs(&bb1_name).sorted().collect();
     assert_eq!(bb1_succs, vec![&Name::from(5), &Name::from(7)]);
-
     let bb5_name = Name::from(5);
     let bb5_preds: Vec<&Name> = cfg.preds(&bb5_name).sorted().collect();
     assert_eq!(bb5_preds, vec![&Name::from(1), &Name::from(10)]);
@@ -264,4 +333,176 @@ fn nested_loop() {
     assert_eq!(bb13_preds, vec![&Name::from(5), &Name::from(13)]);
     let bb13_succs: Vec<&Name> = cfg.succs(&bb13_name).sorted().collect();
     assert_eq!(bb13_succs, vec![&Name::from(10), &Name::from(13)]);
+}
+
+#[test]
+fn while_loop_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("while_loop");
+
+    // CFG:
+    //  1
+    //  |   _
+    //  | /   \   (self-loop on 6)
+    //  6 -- /
+    //  |
+    //  |
+    //  12
+
+    assert_eq!(domtree.idom(&Name::from(1)), None);
+    assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(6)));
+}
+
+#[test]
+fn for_loop_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("for_loop");
+
+    // CFG:
+    //  1      _
+    //  | \  /   \
+    //  |  9 -- /
+    //  | /
+    //  6
+
+    assert_eq!(domtree.idom(&Name::from(1)), None);
+    assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(9)), Some(&Name::from(1)));
+}
+
+#[test]
+fn loop_zero_iterations_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("loop_zero_iterations");
+
+    // CFG:
+    //   1
+    //   | \
+    //   |  5     _
+    //   |  | \ /   \
+    //   |  | 11 - /
+    //   |  | /
+    //   |  8
+    //   | /
+    //  18
+
+    assert_eq!(domtree.idom(&Name::from(1)), None);
+    assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(8)), Some(&Name::from(5)));
+    assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(5)));
+    assert_eq!(domtree.idom(&Name::from(18)), Some(&Name::from(1)));
+}
+
+#[test]
+fn loop_with_cond_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("loop_with_cond");
+
+    // CFG:
+    //   1
+    //   |
+    //   6 <---
+    //   | \    \
+    //   |  10   |
+    //   | / |   |
+    //  13  /    |
+    //   | /    /
+    //  16 --->
+    //   |
+    //  20
+
+    assert_eq!(domtree.idom(&Name::from(1)), None);
+    assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(6)));
+    assert_eq!(domtree.idom(&Name::from(13)), Some(&Name::from(6)));
+    assert_eq!(domtree.idom(&Name::from(16)), Some(&Name::from(6)));
+    assert_eq!(domtree.idom(&Name::from(20)), Some(&Name::from(16)));
+}
+
+#[test]
+fn loop_inside_cond_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("loop_inside_cond");
+
+    // CFG:
+    //      1      _
+    //    /   \  /   \
+    //  11     5 -- /
+    //    \   /
+    //     12
+
+    assert_eq!(domtree.idom(&Name::from(1)), None);
+    assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(1)));
+}
+
+#[test]
+fn search_array_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("search_array");
+
+    // CFG:
+    //      1   _
+    //      | /   \
+    //      4 -- /
+    //      |
+    //     11 <---- \
+    //    /  \       |
+    //  19    16 --> /
+    //    \  /
+    //     21
+
+    assert_eq!(domtree.idom(&Name::from(1)), None);
+    assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(4)));
+    assert_eq!(domtree.idom(&Name::from(16)), Some(&Name::from(11)));
+    assert_eq!(domtree.idom(&Name::from(19)), Some(&Name::from(11)));
+    assert_eq!(domtree.idom(&Name::from(21)), Some(&Name::from(11)));
+}
+
+#[test]
+fn nested_loop_domtree() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let domtree = analysis.dominator_tree("nested_loop");
+
+    // CFG:
+    //  1
+    //  | \
+    //  |  5 <----
+    //  |  |   _   \
+    //  |  | /  |   |
+    //  | 13 -- /   |
+    //  |  |       /
+    //  | 10 ---->
+    //  | /
+    //  7
+
+    assert_eq!(domtree.idom(&Name::from(1)), None);
+    assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
+    assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(13)));
+    assert_eq!(domtree.idom(&Name::from(13)), Some(&Name::from(5)));
+    assert_eq!(domtree.idom(&Name::from(7)), Some(&Name::from(1)));
 }
