@@ -11,8 +11,8 @@ pub struct ControlFlowGraph<'m> {
     /// from bbX
     pub(crate) graph: DiGraphMap<CFGNode<'m>, ()>,
 
-    /// Name of the entry node
-    entry_node: &'m Name,
+    /// Entry node for the function
+    pub(crate) entry_node: CFGNode<'m>,
 }
 
 /// A CFGNode represents a basic block, or the special node `Return`
@@ -97,7 +97,7 @@ impl<'m> ControlFlowGraph<'m> {
 
         Self {
             graph,
-            entry_node: &function.basic_blocks[0].name,
+            entry_node: CFGNode::Block(&function.basic_blocks[0].name),
         }
     }
 
@@ -113,10 +113,14 @@ impl<'m> ControlFlowGraph<'m> {
     }
 
     pub(crate) fn preds_of_cfgnode<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = &'m Name> + 's {
-        self.graph.neighbors_directed(node, Direction::Incoming).map(|cfgnode| match cfgnode {
+        self.preds_as_nodes(node).map(|cfgnode| match cfgnode {
             CFGNode::Block(block) => block,
-            CFGNode::Return => panic!("Shouldn't have CFGNode::Return as a predecessor"),
+            CFGNode::Return => panic!("Shouldn't have CFGNode::Return as a predecessor"), // perhaps you tried to call this on a reversed CFG? In-crate users can use `preds_as_nodes()` if they need to account for the possibility of a reversed CFG
         })
+    }
+
+    pub(crate) fn preds_as_nodes<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = CFGNode<'m>> + 's {
+        self.graph.neighbors_directed(node, Direction::Incoming)
     }
 
     /// Get the successors of the basic block with the given `Name`.
@@ -128,6 +132,19 @@ impl<'m> ControlFlowGraph<'m> {
 
     /// Get the `Name` of the entry block for the function
     pub fn entry(&self) -> &'m Name {
-        self.entry_node
+        match self.entry_node {
+            CFGNode::Block(block) => block,
+            CFGNode::Return => panic!("Return node should not be entry"), // perhaps you tried to call this on a reversed CFG? In-crate users can use the `entry_node` field directly if they need to account for the possibility of a reversed CFG
+        }
+    }
+
+    /// Get the reversed CFG; i.e., the CFG where all edges have been reversed
+    pub(crate) fn reversed(&self) -> Self {
+        Self {
+            graph: DiGraphMap::from_edges(
+                self.graph.all_edges().map(|(a, b, _)| (b, a, ()))
+            ),
+            entry_node: CFGNode::Return,
+        }
     }
 }

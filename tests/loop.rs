@@ -381,7 +381,6 @@ fn while_loop_domtree() {
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("while_loop");
 
     // CFG:
     //  1
@@ -392,10 +391,16 @@ fn while_loop_domtree() {
     //  |
     //  12
 
+    let domtree = analysis.dominator_tree("while_loop");
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(6)));
     assert_eq!(domtree.idom_of_return(), &Name::from(12));
+
+    let postdomtree = analysis.postdominator_tree("while_loop");
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), CFGNode::Block(&Name::from(6)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(6)), CFGNode::Block(&Name::from(12)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(12)), CFGNode::Return);
 }
 
 #[test]
@@ -404,7 +409,6 @@ fn for_loop_domtree() {
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("for_loop");
 
     // CFG:
     //  1      _
@@ -413,10 +417,16 @@ fn for_loop_domtree() {
     //  | /
     //  6
 
+    let domtree = analysis.dominator_tree("for_loop");
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(9)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(6));
+
+    let postdomtree = analysis.postdominator_tree("for_loop");
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), CFGNode::Block(&Name::from(6)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(6)), CFGNode::Return);
+    assert_eq!(postdomtree.ipostdom(&Name::from(9)), CFGNode::Block(&Name::from(6)));
 }
 
 #[test]
@@ -425,7 +435,6 @@ fn loop_zero_iterations_domtree() {
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("loop_zero_iterations");
 
     // CFG:
     //   1
@@ -438,12 +447,20 @@ fn loop_zero_iterations_domtree() {
     //   | /
     //  18
 
+    let domtree = analysis.dominator_tree("loop_zero_iterations");
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(8)), Some(&Name::from(5)));
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(5)));
     assert_eq!(domtree.idom(&Name::from(18)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(18));
+
+    let postdomtree = analysis.postdominator_tree("loop_zero_iterations");
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), CFGNode::Block(&Name::from(18)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(5)), CFGNode::Block(&Name::from(8)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(8)), CFGNode::Block(&Name::from(18)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(11)), CFGNode::Block(&Name::from(8)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(18)), CFGNode::Return);
 }
 
 #[test]
@@ -452,7 +469,6 @@ fn loop_with_cond_domtree() {
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("loop_with_cond");
 
     // CFG:
     //   1
@@ -467,6 +483,7 @@ fn loop_with_cond_domtree() {
     //   |
     //  20
 
+    let domtree = analysis.dominator_tree("loop_with_cond");
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(6)));
@@ -474,6 +491,14 @@ fn loop_with_cond_domtree() {
     assert_eq!(domtree.idom(&Name::from(16)), Some(&Name::from(6)));
     assert_eq!(domtree.idom(&Name::from(20)), Some(&Name::from(16)));
     assert_eq!(domtree.idom_of_return(), &Name::from(20));
+
+    let postdomtree = analysis.postdominator_tree("loop_with_cond");
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), CFGNode::Block(&Name::from(6)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(6)), CFGNode::Block(&Name::from(16)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(10)), CFGNode::Block(&Name::from(16)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(13)), CFGNode::Block(&Name::from(16)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(16)), CFGNode::Block(&Name::from(20)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(20)), CFGNode::Return);
 }
 
 #[test]
@@ -482,7 +507,6 @@ fn loop_inside_cond_domtree() {
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("loop_inside_cond");
 
     // CFG:
     //      1      _
@@ -491,11 +515,18 @@ fn loop_inside_cond_domtree() {
     //    \   /
     //     12
 
+    let domtree = analysis.dominator_tree("loop_inside_cond");
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(12));
+
+    let postdomtree = analysis.postdominator_tree("loop_inside_cond");
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), CFGNode::Block(&Name::from(12)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(5)), CFGNode::Block(&Name::from(12)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(11)), CFGNode::Block(&Name::from(12)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(12)), CFGNode::Return);
 }
 
 #[test]
@@ -504,7 +535,6 @@ fn search_array_domtree() {
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("search_array");
 
     // CFG:
     //      1   _
@@ -517,6 +547,7 @@ fn search_array_domtree() {
     //    \  /
     //     21
 
+    let domtree = analysis.dominator_tree("search_array");
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(4)));
@@ -524,6 +555,14 @@ fn search_array_domtree() {
     assert_eq!(domtree.idom(&Name::from(19)), Some(&Name::from(11)));
     assert_eq!(domtree.idom(&Name::from(21)), Some(&Name::from(11)));
     assert_eq!(domtree.idom_of_return(), &Name::from(21));
+
+    let postdomtree = analysis.postdominator_tree("search_array");
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), CFGNode::Block(&Name::from(4)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(4)), CFGNode::Block(&Name::from(11)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(11)), CFGNode::Block(&Name::from(21)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(16)), CFGNode::Block(&Name::from(21)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(19)), CFGNode::Block(&Name::from(21)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(21)), CFGNode::Return);
 }
 
 #[test]
@@ -532,7 +571,6 @@ fn nested_loop_domtree() {
     let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("nested_loop");
 
     // CFG:
     //  1
@@ -546,10 +584,18 @@ fn nested_loop_domtree() {
     //  | /
     //  7
 
+    let domtree = analysis.dominator_tree("nested_loop");
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(13)));
     assert_eq!(domtree.idom(&Name::from(13)), Some(&Name::from(5)));
     assert_eq!(domtree.idom(&Name::from(7)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(7));
+
+    let postdomtree = analysis.postdominator_tree("nested_loop");
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), CFGNode::Block(&Name::from(7)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(5)), CFGNode::Block(&Name::from(13)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(7)), CFGNode::Return);
+    assert_eq!(postdomtree.ipostdom(&Name::from(10)), CFGNode::Block(&Name::from(7)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(13)), CFGNode::Block(&Name::from(10)));
 }

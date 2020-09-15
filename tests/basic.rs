@@ -190,6 +190,13 @@ fn conditional_true_cfg() {
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("conditional_true");
 
+    // CFG:
+    //     2
+    //   /   \
+    //  4     8
+    //   \   /
+    //    12
+
     let bb2_name = Name::from(2);
     let _bb2_node = CFGNode::Block(&bb2_name);
     let bb4_name = Name::from(4);
@@ -228,6 +235,13 @@ fn conditional_false_cfg() {
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("conditional_false");
 
+    // CFG:
+    //     2
+    //   /   \
+    //  4     8
+    //   \   /
+    //    12
+
     let bb2_name = Name::from(2);
     let _bb2_node = CFGNode::Block(&bb2_name);
     let bb4_name = Name::from(4);
@@ -259,12 +273,25 @@ fn conditional_false_cfg() {
 }
 
 #[test]
-fn condtional_nozero_cfg() {
+fn conditional_nozero_cfg() {
     init_logging();
     let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("conditional_nozero");
+
+    // CFG:
+    //  2
+    //  | \
+    //  |  4
+    //  |  | \
+    //  |  |  8
+    //  |  6  | \
+    //  |  |  10 12
+    //  |  |  |  |
+    //  |  |  | /
+    //   \ | / /
+    //     14
 
     let bb2_name = Name::from(2);
     let _bb2_node = CFGNode::Block(&bb2_name);
@@ -324,6 +351,19 @@ fn has_switch_cfg() {
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("has_switch");
+
+    // CFG:
+    //           2
+    //     ___ / | \ ___
+    //   /  / |  |  | \  \
+    //  |  |  |  |  |  \  \
+    //  |  |  |  |  |   |  \
+    //  4  5  7  |  10  11  12
+    //   \  \  \ | /   /   /
+    //    \  \ _ | __ /   /
+    //     \ ___ | _____ /
+    //           |
+    //           14
 
     let bb2_name = Name::from(2);
     let _bb2_node = CFGNode::Block(&bb2_name);
@@ -426,6 +466,10 @@ fn trivial_domtrees() {
         let entry = domtree.entry();
         assert_eq!(domtree.idom(entry), None);
         assert_eq!(domtree.children(entry).collect::<Vec<_>>(), vec![CFGNode::Return]);
+
+        let postdomtree = analysis.postdominator_tree(func_name);
+        assert_eq!(postdomtree.ipostdom(entry), CFGNode::Return);
+        assert_eq!(postdomtree.children(entry).count(), 0);
     }
 }
 
@@ -435,7 +479,13 @@ fn conditional_true_domtree() {
     let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("conditional_true");
+
+    // CFG:
+    //     2
+    //   /   \
+    //  4     8
+    //   \   /
+    //    12
 
     let bb2_name = Name::from(2);
     let _bb2_node = CFGNode::Block(&bb2_name);
@@ -445,6 +495,8 @@ fn conditional_true_domtree() {
     let bb8_node = CFGNode::Block(&bb8_name);
     let bb12_name = Name::from(12);
     let bb12_node = CFGNode::Block(&bb12_name);
+
+    let domtree = analysis.dominator_tree("conditional_true");
 
     assert_eq!(domtree.idom(&bb2_name), None);
     let children: Vec<CFGNode> = domtree.children(&bb2_name).sorted().collect();
@@ -461,6 +513,12 @@ fn conditional_true_domtree() {
     assert_eq!(domtree.idom(&bb8_name), Some(&bb2_name));
     let children: Vec<CFGNode> = domtree.children(&bb12_name).sorted().collect();
     assert_eq!(children, vec![CFGNode::Return]);
+
+    let postdomtree = analysis.postdominator_tree("conditional_true");
+    assert_eq!(postdomtree.ipostdom(&bb2_name), bb12_node);
+    assert_eq!(postdomtree.ipostdom(&bb4_name), bb12_node);
+    assert_eq!(postdomtree.ipostdom(&bb8_name), bb12_node);
+    assert_eq!(postdomtree.ipostdom(&bb12_name), CFGNode::Return);
 }
 
 #[test]
@@ -469,7 +527,13 @@ fn conditional_false_domtree() {
     let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("conditional_false");
+
+    // CFG:
+    //     2
+    //   /   \
+    //  4     8
+    //   \   /
+    //    12
 
     let bb2_name = Name::from(2);
     let _bb2_node = CFGNode::Block(&bb2_name);
@@ -479,6 +543,8 @@ fn conditional_false_domtree() {
     let bb8_node = CFGNode::Block(&bb8_name);
     let bb12_name = Name::from(12);
     let bb12_node = CFGNode::Block(&bb12_name);
+
+    let domtree = analysis.dominator_tree("conditional_false");
 
     assert_eq!(domtree.idom(&bb2_name), None);
     let children: Vec<CFGNode> = domtree.children(&bb2_name).sorted().collect();
@@ -495,6 +561,12 @@ fn conditional_false_domtree() {
     assert_eq!(domtree.idom(&bb8_name), Some(&bb2_name));
     let children: Vec<CFGNode> = domtree.children(&bb12_name).sorted().collect();
     assert_eq!(children, vec![CFGNode::Return]);
+
+    let postdomtree = analysis.postdominator_tree("conditional_false");
+    assert_eq!(postdomtree.ipostdom(&bb2_name), bb12_node);
+    assert_eq!(postdomtree.ipostdom(&bb4_name), bb12_node);
+    assert_eq!(postdomtree.ipostdom(&bb8_name), bb12_node);
+    assert_eq!(postdomtree.ipostdom(&bb12_name), CFGNode::Return);
 }
 
 #[test]
@@ -503,8 +575,21 @@ fn conditional_nozero_domtree() {
     let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("conditional_nozero");
 
+    // CFG:
+    //  2
+    //  | \
+    //  |  4
+    //  |  | \
+    //  |  |  8
+    //  |  6  | \
+    //  |  |  10 12
+    //  |  |  |  |
+    //  |  |  | /
+    //   \ | / /
+    //     14
+
+    let domtree = analysis.dominator_tree("conditional_nozero");
     assert_eq!(domtree.idom(&Name::from(2)), None);
     assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(2)));
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(4)));
@@ -512,6 +597,15 @@ fn conditional_nozero_domtree() {
     assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(8)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(8)));
     assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
+
+    let postdomtree = analysis.postdominator_tree("conditional_nozero");
+    assert_eq!(postdomtree.ipostdom(&Name::from(2)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(4)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(6)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(8)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(10)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(12)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(14)), CFGNode::Return);
 }
 
 #[test]
@@ -520,8 +614,21 @@ fn has_switch_domtree() {
     let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let domtree = analysis.dominator_tree("has_switch");
 
+    // CFG:
+    //           2
+    //     ___ / | \ ___
+    //   /  / |  |  | \  \
+    //  |  |  |  |  |  \  \
+    //  |  |  |  |  |   |  \
+    //  4  5  7  |  10  11  12
+    //   \  \  \ | /   /   /
+    //    \  \ _ | __ /   /
+    //     \ ___ | _____ /
+    //           |
+    //           14
+
+    let domtree = analysis.dominator_tree("has_switch");
     assert_eq!(domtree.idom(&Name::from(2)), None);
     assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(2)));
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(2)));
@@ -530,4 +637,14 @@ fn has_switch_domtree() {
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(2)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(2)));
     assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
+
+    let postdomtree = analysis.postdominator_tree("has_switch");
+    assert_eq!(postdomtree.ipostdom(&Name::from(2)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(4)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(5)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(7)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(10)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(11)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(12)), CFGNode::Block(&Name::from(14)));
+    assert_eq!(postdomtree.ipostdom(&Name::from(14)), CFGNode::Return);
 }

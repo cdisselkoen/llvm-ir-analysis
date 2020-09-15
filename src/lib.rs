@@ -5,7 +5,7 @@ mod functions_by_type;
 
 pub use crate::call_graph::CallGraph;
 pub use crate::control_flow_graph::{CFGNode, ControlFlowGraph};
-pub use crate::dominator_tree::DominatorTree;
+pub use crate::dominator_tree::{DominatorTree, PostDominatorTree};
 pub use crate::functions_by_type::FunctionsByType;
 use llvm_ir::Module;
 use std::cell::{RefMut, RefCell};
@@ -27,6 +27,9 @@ pub struct Analysis<'m> {
     /// Map from function name to the `DominatorTree` for that function.
     /// The hashmap starts empty and is populated on demand.
     dominator_trees: RefCell<HashMap<&'m str, DominatorTree<'m>>>,
+    /// Map from function name to the `PostDominatorTree` for that function.
+    /// The hashmap starts empty and is populated on demand.
+    postdominator_trees: RefCell<HashMap<&'m str, PostDominatorTree<'m>>>,
 }
 
 impl<'m> Analysis<'m> {
@@ -41,6 +44,7 @@ impl<'m> Analysis<'m> {
             functions_by_type: RefCell::new(None),
             control_flow_graphs: RefCell::new(HashMap::new()),
             dominator_trees: RefCell::new(HashMap::new()),
+            postdominator_trees: RefCell::new(HashMap::new()),
         }
     }
 
@@ -78,9 +82,20 @@ impl<'m> Analysis<'m> {
     /// Panics if no function of that name exists in the `Module`.
     pub fn dominator_tree(&self, func_name: &'m str) -> RefMut<DominatorTree<'m>> {
         let refmut = self.dominator_trees.borrow_mut();
-        RefMut::map(refmut, |map| map.entry(func_name).or_insert_with( || {
+        RefMut::map(refmut, |map| map.entry(func_name).or_insert_with(|| {
             let cfg = self.control_flow_graph(func_name);
             DominatorTree::new(&cfg)
+        }))
+    }
+
+    /// Get the `PostDominatorTree` for the function with the given name
+    ///
+    /// Panics if no function of that name exists in the `Module`.
+    pub fn postdominator_tree(&self, func_name: &'m str) -> RefMut<PostDominatorTree<'m>> {
+        let refmut = self.postdominator_trees.borrow_mut();
+        RefMut::map(refmut, |map| map.entry(func_name).or_insert_with(|| {
+            let cfg = self.control_flow_graph(func_name);
+            PostDominatorTree::new(&cfg)
         }))
     }
 }

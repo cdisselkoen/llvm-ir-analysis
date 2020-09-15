@@ -16,13 +16,26 @@ pub struct DominatorTree<'m> {
     ///     path from the entry block to bbY (but bbX =/= bbY)
     ///   - Of the blocks that strictly dominate bbY, bbX is the closest to bbY
     ///     (farthest from entry) along paths from the entry block to bbY
-    graph: DiGraphMap<CFGNode<'m>, ()>,
+    pub(crate) graph: DiGraphMap<CFGNode<'m>, ()>,
 
-    /// Name of the entry node
-    entry_node: &'m Name,
+    /// Entry node for the function
+    pub(crate) entry_node: CFGNode<'m>,
 }
 
-/// Contains state used when constructing the `DominatorTree`
+/// The postdominator tree for a particular function
+pub struct PostDominatorTree<'m> {
+    /// The graph itself. An edge from bbX to bbY indicates that bbX is the
+    /// immediate postdominator of bbY.
+    ///
+    /// That is:
+    ///   - bbX strictly postdominates bbY, i.e., bbX appears on every control-flow
+    ///     path from bbY to the function exit (but bbX =/= bbY)
+    ///   - Of the blocks that strictly postdominate bbY, bbX is the closest to bbY
+    ///     (farthest from exit) along paths from bbY to the function exit
+    pub(crate) graph: DiGraphMap<CFGNode<'m>, ()>,
+}
+
+/// Contains state used when constructing the `DominatorTree` or `PostDominatorTree`
 struct DomTreeBuilder<'m, 'a> {
     /// The `ControlFlowGraph` we're working from
     cfg: &'a ControlFlowGraph<'m>,
@@ -37,7 +50,7 @@ struct DomTreeBuilder<'m, 'a> {
     /// (the entry node maps to `None`).
     ///
     /// Unreachable blocks won't be in this map.
-    idoms: HashMap<CFGNode<'m>, Option<&'m Name>>,
+    idoms: HashMap<CFGNode<'m>, Option<CFGNode<'m>>>,
 }
 
 impl<'m, 'a> DomTreeBuilder<'m, 'a> {
@@ -47,7 +60,7 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
     fn new(cfg: &'a ControlFlowGraph<'m>) -> Self {
         Self {
             cfg,
-            rpo_numbers: Dfs::new(&cfg.graph, CFGNode::Block(cfg.entry()))
+            rpo_numbers: Dfs::new(&cfg.graph, cfg.entry_node)
                 .iter(&cfg.graph)
                 .zip(1..)
                 .collect(),
@@ -63,14 +76,14 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
 
         // first compute initial (preliminary) estimates for the immediate
         // dominator of each block
-        for block in Dfs::new(&self.cfg.graph, CFGNode::Block(self.cfg.entry())).iter(&self.cfg.graph) {
+        for block in Dfs::new(&self.cfg.graph, self.cfg.entry_node).iter(&self.cfg.graph) {
             self.idoms.insert(block, self.compute_idom(block));
         }
 
         let mut changed = true;
         while changed {
             changed = false;
-            for block in Dfs::new(&self.cfg.graph, CFGNode::Block(self.cfg.entry())).iter(&self.cfg.graph) {
+            for block in Dfs::new(&self.cfg.graph, self.cfg.entry_node).iter(&self.cfg.graph) {
                 let idom = self.compute_idom(block);
                 let prev_idom = self.idoms.get_mut(&block).expect("All nodes in the dfs should have an initialized idom by now");
                 if idom != *prev_idom {
@@ -81,7 +94,7 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
         }
 
         DiGraphMap::from_edges(
-            self.idoms.into_iter().filter_map(|(block, idom)| Some((CFGNode::Block(idom?), block)))
+            self.idoms.into_iter().filter_map(|(block, idom)| Some((idom?, block)))
         )
     }
 
@@ -90,15 +103,15 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
     ///
     /// `block` must be reachable in the CFG. Returns `None` only for the entry
     /// block.
-    fn compute_idom(&self, block: CFGNode<'m>) -> Option<&'m Name> {
+    fn compute_idom(&self, block: CFGNode<'m>) -> Option<CFGNode<'m>> {
         debug!("domtree: compute_idom for {}", block);
-        if block == CFGNode::Block(self.cfg.entry()) {
+        if block == self.cfg.entry_node {
             return None;
         }
         // technically speaking, these are just the reachable preds which already have an idom estimate
         let mut reachable_preds = self.cfg
-            .preds_of_cfgnode(block)
-            .filter(|block| self.idoms.contains_key(&CFGNode::Block(block)));
+            .preds_as_nodes(block)
+            .filter(|block| self.idoms.contains_key(block));
 
         let mut idom = reachable_preds
             .next()
@@ -111,27 +124,27 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
         Some(idom)
     }
 
-    /// Compute the common dominator of two basic blocks.
+    /// Compute the common dominator of two nodes.
     ///
-    /// Both blocks are assumed to be reachable.
+    /// Both nodes are assumed to be reachable.
     fn common_dominator(
         &self,
-        mut block_a: &'m Name,
-        mut block_b: &'m Name,
-    ) -> &'m Name {
+        mut node_a: CFGNode<'m>,
+        mut node_b: CFGNode<'m>,
+    ) -> CFGNode<'m> {
         loop {
-            match self.rpo_numbers[&CFGNode::Block(block_a)].cmp(&self.rpo_numbers[&CFGNode::Block(block_b)]) {
+            match self.rpo_numbers[&node_a].cmp(&self.rpo_numbers[&node_b]) {
                 Ordering::Less => {
-                    block_b = self.idoms[&CFGNode::Block(block_b)].unwrap_or(self.cfg.entry());
+                    node_b = self.idoms[&node_b].expect("entry node should have the smallest rpo number");
                 },
                 Ordering::Greater => {
-                    block_a = self.idoms[&CFGNode::Block(block_a)].unwrap_or(self.cfg.entry());
+                    node_a = self.idoms[&node_a].expect("entry node should have the smallest rpo number");
                 },
                 Ordering::Equal => break,
             }
         }
 
-        block_a
+        node_a
     }
 }
 
@@ -139,7 +152,7 @@ impl<'m> DominatorTree<'m> {
     pub(crate) fn new(cfg: &ControlFlowGraph<'m>) -> Self {
         Self {
             graph: DomTreeBuilder::new(cfg).build(),
-            entry_node: cfg.entry(),
+            entry_node: cfg.entry_node,
         }
     }
 
@@ -195,6 +208,58 @@ impl<'m> DominatorTree<'m> {
 
     /// Get the `Name` of the entry block for the function
     pub fn entry(&self) -> &'m Name {
-        self.entry_node
+        match self.entry_node {
+            CFGNode::Block(block) => block,
+            CFGNode::Return => panic!("Return node should not be entry"),
+        }
+    }
+}
+
+impl<'m> PostDominatorTree<'m> {
+    pub(crate) fn new(cfg: &ControlFlowGraph<'m>) -> Self {
+        // The postdominator relation for `cfg` is the dominator relation on
+        // the reversed `cfg` (Cytron et al, p. 477)
+
+        Self {
+            graph: DomTreeBuilder::new(&cfg.reversed()).build(),
+        }
+    }
+
+    /// Get the immediate postdominator of the basic block with the given `Name`.
+    ///
+    /// A block bbX is the immediate postdominator of bbY if and only if:
+    ///   - bbX strictly postdominates bbY, i.e., bbX appears on every control-flow
+    ///     path from bbY to the function exit (but bbX =/= bbY)
+    ///   - Of the blocks that strictly postdominate bbY, bbX is the closest to bbY
+    ///     (farthest from exit) along paths from bbY to the function exit
+    ///
+    /// If the immediate postdominator is `CFGNode::Return`, that indicates that
+    /// there is no single basic block that postdominates the given block.
+    pub fn ipostdom(&self, block: &'m Name) -> CFGNode<'m> {
+        let mut parents = self.graph.neighbors_directed(CFGNode::Block(block), Direction::Incoming);
+        let ipostdom = parents.next().expect("Block {:?} should have an immediate postdominator");
+        if let Some(_) = parents.next() {
+            panic!("Block {:?} should have only one immediate postdominator");
+        }
+        ipostdom
+    }
+
+    /// Get the children of the given basic block in the postdominator tree, i.e.,
+    /// get all the blocks which are immediately postdominated by `block`.
+    ///
+    /// See notes on `ipostdom()`.
+    pub fn children<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = CFGNode<'m>> + 's {
+        self.graph.neighbors_directed(CFGNode::Block(block), Direction::Outgoing)
+    }
+
+    /// Get the children of `CFGNode::Return` in the postdominator tree, i.e.,
+    /// get all the blocks which are immediately postdominated by `CFGNode::Return`.
+    ///
+    /// See notes on `ipostdom()`.
+    pub fn children_of_return<'s>(&'s self) -> impl Iterator<Item = &'m Name> + 's {
+        self.graph.neighbors_directed(CFGNode::Return, Direction::Outgoing).map(|child| match child {
+            CFGNode::Block(block) => block,
+            CFGNode::Return => panic!("Return node shouldn't be the immediate postdominator of itself"),
+        })
     }
 }
