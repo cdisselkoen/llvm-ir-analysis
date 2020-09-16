@@ -1,9 +1,11 @@
 mod call_graph;
+mod control_dep_graph;
 mod control_flow_graph;
 mod dominator_tree;
 mod functions_by_type;
 
 pub use crate::call_graph::CallGraph;
+pub use crate::control_dep_graph::ControlDependenceGraph;
 pub use crate::control_flow_graph::{CFGNode, ControlFlowGraph};
 pub use crate::dominator_tree::{DominatorTree, PostDominatorTree};
 pub use crate::functions_by_type::FunctionsByType;
@@ -26,6 +28,8 @@ pub struct Analysis<'m> {
     dominator_trees: MappingCache<&'m str, DominatorTree<'m>>,
     /// Map from function name to the `PostDominatorTree` for that function
     postdominator_trees: MappingCache<&'m str, PostDominatorTree<'m>>,
+    /// Map from function name to the `ControlDependenceGraph` for that function
+    control_dep_graphs: MappingCache<&'m str, ControlDependenceGraph<'m>>,
 }
 
 impl<'m> Analysis<'m> {
@@ -41,6 +45,7 @@ impl<'m> Analysis<'m> {
             control_flow_graphs: MappingCache::new(),
             dominator_trees: MappingCache::new(),
             postdominator_trees: MappingCache::new(),
+            control_dep_graphs: MappingCache::new(),
         }
     }
 
@@ -89,6 +94,18 @@ impl<'m> Analysis<'m> {
             PostDominatorTree::new(&cfg)
         })
     }
+
+    /// Get the `ControlDependenceGraph` for the function with the given name
+    ///
+    /// Panics if no function of that name exists in the `Module`.
+    pub fn control_dependence_graph(&self, func_name: &'m str) -> Ref<ControlDependenceGraph<'m>> {
+        self.control_dep_graphs.get_or_insert_with(&func_name, || {
+            let cfg = self.control_flow_graph(func_name);
+            let postdomtree = self.postdominator_tree(func_name);
+            ControlDependenceGraph::new(&cfg, &postdomtree)
+        })
+    }
+
 }
 
 struct SimpleCache<T> {

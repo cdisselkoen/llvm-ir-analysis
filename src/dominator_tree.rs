@@ -236,10 +236,14 @@ impl<'m> PostDominatorTree<'m> {
     /// If the immediate postdominator is `CFGNode::Return`, that indicates that
     /// there is no single basic block that postdominates the given block.
     pub fn ipostdom(&self, block: &'m Name) -> CFGNode<'m> {
-        let mut parents = self.graph.neighbors_directed(CFGNode::Block(block), Direction::Incoming);
-        let ipostdom = parents.next().expect("Block {:?} should have an immediate postdominator");
+        self.ipostdom_of_cfgnode(CFGNode::Block(block))
+    }
+
+    pub(crate) fn ipostdom_of_cfgnode(&self, node: CFGNode<'m>) -> CFGNode<'m> {
+        let mut parents = self.graph.neighbors_directed(node, Direction::Incoming);
+        let ipostdom = parents.next().unwrap_or_else(|| panic!("Block {:?} should have an immediate postdominator", node));
         if let Some(_) = parents.next() {
-            panic!("Block {:?} should have only one immediate postdominator");
+            panic!("Block {:?} should have only one immediate postdominator", node);
         }
         ipostdom
     }
@@ -249,7 +253,11 @@ impl<'m> PostDominatorTree<'m> {
     ///
     /// See notes on `ipostdom()`.
     pub fn children<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = CFGNode<'m>> + 's {
-        self.graph.neighbors_directed(CFGNode::Block(block), Direction::Outgoing)
+        self.children_of_cfgnode(CFGNode::Block(block))
+    }
+
+    pub(crate) fn children_of_cfgnode<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = CFGNode<'m>> + 's {
+        self.graph.neighbors_directed(node, Direction::Outgoing)
     }
 
     /// Get the children of `CFGNode::Return` in the postdominator tree, i.e.,

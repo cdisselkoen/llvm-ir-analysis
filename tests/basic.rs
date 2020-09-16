@@ -648,3 +648,252 @@ fn has_switch_domtree() {
     assert_eq!(postdomtree.ipostdom(&Name::from(12)), CFGNode::Block(&Name::from(14)));
     assert_eq!(postdomtree.ipostdom(&Name::from(14)), CFGNode::Return);
 }
+
+#[test]
+fn trivial_control_deps() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+
+    for func_name in &[
+        "no_args_zero",
+        "no_args_nozero",
+        "one_arg",
+        "two_args",
+        "three_args",
+        "four_args",
+        "five_args",
+        "binops",
+        "conditional_with_and",
+        "int8t",
+        "int16t",
+        "int32t",
+        "int64t",
+        "mixed_bitwidths",
+    ] {
+        let cdg = analysis.control_dependence_graph(func_name);
+        let entry = cdg.entry();
+        assert_eq!(cdg.get_control_dependencies(entry).count(), 0);
+        assert_eq!(cdg.get_control_dependents(entry).count(), 0);
+    }
+}
+
+#[test]
+fn conditional_true_cdg() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+
+    // CFG:
+    //     2
+    //   /   \
+    //  4     8
+    //   \   /
+    //    12
+
+    let bb2_name = Name::from(2);
+    let bb4_name = Name::from(4);
+    let bb8_name = Name::from(8);
+    let bb12_name = Name::from(12);
+
+    let cdg = analysis.control_dependence_graph("conditional_true");
+
+    let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
+    assert!(bb2_dependencies.is_empty());
+    let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
+    assert_eq!(bb2_dependents, vec![CFGNode::Block(&Name::from(4)), CFGNode::Block(&Name::from(8))]);
+
+    let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
+    assert_eq!(bb4_dependencies, vec![&Name::from(2)]);
+    let bb4_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb4_name).sorted().collect();
+    assert!(bb4_dependents.is_empty());
+
+    let bb8_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb8_name).sorted().collect();
+    assert_eq!(bb8_dependencies, vec![&Name::from(2)]);
+    let bb8_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb8_name).sorted().collect();
+    assert!(bb8_dependents.is_empty());
+
+    let bb12_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb12_name).sorted().collect();
+    assert!(bb12_dependencies.is_empty());
+    let bb12_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb12_name).sorted().collect();
+    assert!(bb12_dependents.is_empty());
+}
+
+#[test]
+fn conditional_false_cdg() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+
+    // CFG:
+    //     2
+    //   /   \
+    //  4     8
+    //   \   /
+    //    12
+
+    let bb2_name = Name::from(2);
+    let bb4_name = Name::from(4);
+    let bb8_name = Name::from(8);
+    let bb12_name = Name::from(12);
+
+    let cdg = analysis.control_dependence_graph("conditional_false");
+
+    let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
+    assert!(bb2_dependencies.is_empty());
+    let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
+    assert_eq!(bb2_dependents, vec![CFGNode::Block(&Name::from(4)), CFGNode::Block(&Name::from(8))]);
+
+    let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
+    assert_eq!(bb4_dependencies, vec![&Name::from(2)]);
+    let bb4_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb4_name).sorted().collect();
+    assert!(bb4_dependents.is_empty());
+
+    let bb8_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb8_name).sorted().collect();
+    assert_eq!(bb8_dependencies, vec![&Name::from(2)]);
+    let bb8_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb8_name).sorted().collect();
+    assert!(bb8_dependents.is_empty());
+
+    let bb12_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb12_name).sorted().collect();
+    assert!(bb12_dependencies.is_empty());
+    let bb12_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb12_name).sorted().collect();
+    assert!(bb12_dependents.is_empty());
+}
+
+#[test]
+fn conditional_nozero_cdg() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+
+    // CFG:
+    //  2
+    //  | \
+    //  |  4
+    //  |  | \
+    //  |  |  8
+    //  |  6  | \
+    //  |  |  10 12
+    //  |  |  |  |
+    //  |  |  | /
+    //   \ | / /
+    //     14
+
+    let bb2_name = Name::from(2);
+    let bb4_name = Name::from(4);
+    let bb6_name = Name::from(6);
+    let bb8_name = Name::from(8);
+    let bb10_name = Name::from(10);
+    let bb12_name = Name::from(12);
+    let bb14_name = Name::from(14);
+
+    let cdg = analysis.control_dependence_graph("conditional_nozero");
+
+    let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
+    assert!(bb2_dependencies.is_empty());
+    let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
+    assert_eq!(bb2_dependents, vec![
+        CFGNode::Block(&Name::from(4)),
+        CFGNode::Block(&Name::from(6)),
+        CFGNode::Block(&Name::from(8)),
+        CFGNode::Block(&Name::from(10)),
+        CFGNode::Block(&Name::from(12)),
+    ]);
+
+    let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
+    assert_eq!(bb4_dependencies, vec![&Name::from(2)]);
+    let bb4_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb4_name).sorted().collect();
+    assert_eq!(bb4_dependents, vec![
+        CFGNode::Block(&Name::from(6)),
+        CFGNode::Block(&Name::from(8)),
+        CFGNode::Block(&Name::from(10)),
+        CFGNode::Block(&Name::from(12)),
+    ]);
+
+    let bb6_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb6_name).sorted().collect();
+    assert_eq!(bb6_dependencies, vec![&Name::from(2), &Name::from(4)]);
+    let bb6_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb6_name).sorted().collect();
+    assert!(bb6_dependents.is_empty());
+
+    let bb8_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb8_name).sorted().collect();
+    assert_eq!(bb8_dependencies, vec![&Name::from(2), &Name::from(4)]);
+    let bb8_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb8_name).sorted().collect();
+    assert_eq!(bb8_dependents, vec![
+        CFGNode::Block(&Name::from(10)),
+        CFGNode::Block(&Name::from(12)),
+    ]);
+
+    let bb10_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb10_name).sorted().collect();
+    assert_eq!(bb10_dependencies, vec![&Name::from(2), &Name::from(4), &Name::from(8)]);
+    let bb10_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb10_name).sorted().collect();
+    assert!(bb10_dependents.is_empty());
+
+    let bb12_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb12_name).sorted().collect();
+    assert_eq!(bb12_dependencies, vec![&Name::from(2), &Name::from(4), &Name::from(8)]);
+    let bb12_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb12_name).sorted().collect();
+    assert!(bb12_dependents.is_empty());
+
+    let bb14_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb14_name).sorted().collect();
+    assert!(bb14_dependencies.is_empty());
+    let bb14_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb14_name).sorted().collect();
+    assert!(bb14_dependents.is_empty());
+}
+
+#[test]
+fn has_switch_cdg() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+
+    // CFG:
+    //           2
+    //     ___ / | \ ___
+    //   /  / |  |  | \  \
+    //  |  |  |  |  |  \  \
+    //  |  |  |  |  |   |  \
+    //  4  5  7  |  10  11  12
+    //   \  \  \ | /   /   /
+    //    \  \ _ | __ /   /
+    //     \ ___ | _____ /
+    //           |
+    //           14
+
+    let bb2_name = Name::from(2);
+    let bb4_name = Name::from(4);
+    let bb12_name = Name::from(12);
+    let bb14_name = Name::from(14);
+
+    let cdg = analysis.control_dependence_graph("has_switch");
+
+    let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
+    assert!(bb2_dependencies.is_empty());
+    let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
+    assert_eq!(bb2_dependents, vec![
+        CFGNode::Block(&Name::from(4)),
+        CFGNode::Block(&Name::from(5)),
+        CFGNode::Block(&Name::from(7)),
+        CFGNode::Block(&Name::from(10)),
+        CFGNode::Block(&Name::from(11)),
+        CFGNode::Block(&Name::from(12)),
+    ]);
+
+    let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
+    assert_eq!(bb4_dependencies, vec![&Name::from(2)]);
+    let bb4_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb4_name).sorted().collect();
+    assert!(bb4_dependents.is_empty());
+
+    let bb12_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb12_name).sorted().collect();
+    assert_eq!(bb12_dependencies, vec![&Name::from(2)]);
+    let bb12_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb12_name).sorted().collect();
+    assert!(bb12_dependents.is_empty());
+
+    let bb14_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb14_name).sorted().collect();
+    assert!(bb14_dependencies.is_empty());
+    let bb14_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb14_name).sorted().collect();
+    assert!(bb14_dependents.is_empty());
+}
