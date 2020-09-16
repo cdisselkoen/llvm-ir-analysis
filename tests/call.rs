@@ -8,6 +8,7 @@ fn init_logging() {
 }
 
 const HAYBALE_CALL_BC_PATH: &'static str = "../haybale/tests/bcfiles/call.bc";
+const HAYBALE_FUNCTIONPTR_BC_PATH: &'static str = "../haybale/tests/bcfiles/functionptr.bc";
 
 #[test]
 fn call_graph() {
@@ -87,4 +88,51 @@ fn call_graph() {
     assert_eq!(callers, vec!["mutually_recursive_a"]);
     let callees: Vec<&str> = callgraph.callees("mutually_recursive_b").sorted().collect();
     assert_eq!(callees, vec!["mutually_recursive_a"]);
+}
+
+#[test]
+fn functionptr_call_graph() {
+    init_logging();
+    let module = Module::from_bc_path(HAYBALE_FUNCTIONPTR_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = Analysis::new(&module);
+    let fbt = analysis.functions_by_type();
+    let callgraph = analysis.call_graph();
+
+    let footype_functions: Vec<&str> = fbt.functions_with_type(&module.types.func_type(
+        module.types.i32(),
+        vec![module.types.i32(), module.types.i32()],
+        false,
+    )).sorted().collect();
+    assert_eq!(footype_functions, vec!["bar", "foo"]);
+
+    let callers: Vec<&str> = callgraph.callers("foo").sorted().collect();
+    assert_eq!(callers, vec!["calls_fptr", "calls_through_struct"]);
+    let callees: Vec<&str> = callgraph.callees("foo").sorted().collect();
+    assert!(callees.is_empty());
+
+    let callers: Vec<&str> = callgraph.callers("bar").sorted().collect();
+    assert_eq!(callers, vec!["calls_fptr", "calls_through_struct"]);
+    let callees: Vec<&str> = callgraph.callees("bar").sorted().collect();
+    assert!(callees.is_empty());
+
+    let callers: Vec<&str> = callgraph.callers("calls_fptr").sorted().collect();
+    assert_eq!(callers, vec!["fptr_driver"]);
+    let callees: Vec<&str> = callgraph.callees("calls_fptr").sorted().collect();
+    assert_eq!(callees, vec!["bar", "foo"]);
+
+    let callers: Vec<&str> = callgraph.callers("get_function_ptr").sorted().collect();
+    assert_eq!(callers, vec!["fptr_driver", "struct_driver"]);
+    let callees: Vec<&str> = callgraph.callees("get_function_ptr").sorted().collect();
+    assert!(callees.is_empty());
+
+    let callers: Vec<&str> = callgraph.callers("calls_through_struct").sorted().collect();
+    assert_eq!(callers, vec!["struct_driver"]);
+    let callees: Vec<&str> = callgraph.callees("calls_through_struct").sorted().collect();
+    assert_eq!(callees, vec!["bar", "foo"]);
+
+    let callers: Vec<&str> = callgraph.callers("struct_driver").sorted().collect();
+    assert!(callers.is_empty());
+    let callees: Vec<&str> = callgraph.callees("struct_driver").sorted().collect();
+    assert_eq!(callees, vec!["calls_through_struct", "get_function_ptr", "llvm.lifetime.end.p0i8", "llvm.lifetime.start.p0i8", "llvm.memset.p0i8.i64"]);
 }

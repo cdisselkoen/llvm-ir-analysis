@@ -1,6 +1,6 @@
 use crate::functions_by_type::FunctionsByType;
 use either::Either;
-use llvm_ir::{Constant, Instruction, Module, Name, Operand};
+use llvm_ir::{Constant, Instruction, Module, Name, Operand, Type};
 use petgraph::prelude::*;
 
 /// Represents a call graph: which functions may call which other functions
@@ -41,7 +41,10 @@ impl<'m> CallGraph<'m> {
                                         // Assume that this function pointer could point
                                         // to any function in the current module that has
                                         // the appropriate type
-                                        let func_ty = module.type_of(&call.function);
+                                        let func_ty = match module.type_of(&call.function).as_ref() {
+                                            Type::PointerType { pointee_type, .. } => pointee_type.clone(),
+                                            ty => panic!("Expected function pointer to have pointer type, but got {:?}", ty),
+                                        };
                                         for target in functions_by_type.functions_with_type(&func_ty) {
                                             graph.add_edge(&f.name, target, ());
                                         }
@@ -52,7 +55,10 @@ impl<'m> CallGraph<'m> {
                                 // Assume that this function pointer could point to any
                                 // function in the current module that has the
                                 // appropriate type
-                                let func_ty = module.type_of(&call.function);
+                                let func_ty = match module.type_of(&call.function).as_ref() {
+                                    Type::PointerType { pointee_type, .. } => pointee_type.clone(),
+                                    ty => panic!("Expected function pointer to have pointer type, but got {:?}", ty),
+                                };
                                 for target in functions_by_type.functions_with_type(&func_ty) {
                                     graph.add_edge(&f.name, target, ());
                                 }
