@@ -10,6 +10,7 @@ pub use crate::control_flow_graph::{CFGNode, ControlFlowGraph};
 pub use crate::dominator_tree::{DominatorTree, PostDominatorTree};
 pub use crate::functions_by_type::FunctionsByType;
 use llvm_ir::Module;
+use log::debug;
 use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -53,6 +54,7 @@ impl<'m> Analysis<'m> {
     pub fn call_graph(&self) -> Ref<CallGraph<'m>> {
         self.call_graph.get_or_insert_with(|| {
             let functions_by_type = self.functions_by_type();
+            debug!("computing call graph");
             CallGraph::new(self.module, &functions_by_type)
         })
     }
@@ -60,6 +62,7 @@ impl<'m> Analysis<'m> {
     /// Get the `FunctionsByType` for the `Module`
     pub fn functions_by_type(&self) -> Ref<FunctionsByType<'m>> {
         self.functions_by_type.get_or_insert_with(|| {
+            debug!("computing functions-by-type");
             FunctionsByType::new(self.module)
         })
     }
@@ -71,6 +74,7 @@ impl<'m> Analysis<'m> {
         self.control_flow_graphs.get_or_insert_with(&func_name, || {
             let func = self.module.get_func_by_name(func_name)
                 .unwrap_or_else(|| panic!("Function named {:?} not found in the Module", func_name));
+            debug!("computing control flow graph for {}", func_name);
             ControlFlowGraph::new(func)
         })
     }
@@ -81,6 +85,7 @@ impl<'m> Analysis<'m> {
     pub fn dominator_tree(&self, func_name: &'m str) -> Ref<DominatorTree<'m>> {
         self.dominator_trees.get_or_insert_with(&func_name, || {
             let cfg = self.control_flow_graph(func_name);
+            debug!("computing dominator tree for {}", func_name);
             DominatorTree::new(&cfg)
         })
     }
@@ -91,6 +96,7 @@ impl<'m> Analysis<'m> {
     pub fn postdominator_tree(&self, func_name: &'m str) -> Ref<PostDominatorTree<'m>> {
         self.postdominator_trees.get_or_insert_with(&func_name, || {
             let cfg = self.control_flow_graph(func_name);
+            debug!("computing postdominator tree for {}", func_name);
             PostDominatorTree::new(&cfg)
         })
     }
@@ -102,6 +108,7 @@ impl<'m> Analysis<'m> {
         self.control_dep_graphs.get_or_insert_with(&func_name, || {
             let cfg = self.control_flow_graph(func_name);
             let postdomtree = self.postdominator_tree(func_name);
+            debug!("computing control dependence graph for {}", func_name);
             ControlDependenceGraph::new(&cfg, &postdomtree)
         })
     }
