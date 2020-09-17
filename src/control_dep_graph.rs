@@ -93,7 +93,19 @@ impl<'m> ControlDependenceGraph<'m> {
 
     /// Does `block_a` have a control dependency on `block_b`?
     pub fn is_control_dependent(&self, block_a: &'m Name, block_b: &'m Name) -> bool {
-        petgraph::algo::has_path_connecting(&self.graph, CFGNode::Block(block_a), CFGNode::Block(block_b), None)
+        if block_a != block_b {
+            // the simple case: `has_path_connecting()` does exactly what we want
+            petgraph::algo::has_path_connecting(&self.graph, CFGNode::Block(block_a), CFGNode::Block(block_b), None)
+        } else {
+            // more complicated: we want to know if there is a nonzero-length
+            // path from the block to itself, while `has_path_connecting()` is
+            // content to always return `true` due to the zero-length path,
+            // which is not what we want.
+            // Instead, we check if there is a (zero-or-greater-length) path
+            // from any of the block's successors to the block.
+            self.graph.neighbors_directed(CFGNode::Block(block_a), Direction::Outgoing)
+                .any(|succ| petgraph::algo::has_path_connecting(&self.graph, succ, CFGNode::Block(block_a), None))
+        }
     }
 
     /// Get the `Name` of the entry block for the function

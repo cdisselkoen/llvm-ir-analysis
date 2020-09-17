@@ -719,6 +719,10 @@ fn conditional_true_cdg() {
     assert!(bb12_dependencies.is_empty());
     let bb12_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb12_name).sorted().collect();
     assert!(bb12_dependents.is_empty());
+
+    assert_eq!(cdg.is_control_dependent(&bb4_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb8_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb12_name, &bb2_name), false);
 }
 
 #[test]
@@ -761,6 +765,10 @@ fn conditional_false_cdg() {
     assert!(bb12_dependencies.is_empty());
     let bb12_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb12_name).sorted().collect();
     assert!(bb12_dependents.is_empty());
+
+    assert_eq!(cdg.is_control_dependent(&bb4_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb8_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb12_name, &bb2_name), false);
 }
 
 #[test]
@@ -841,6 +849,16 @@ fn conditional_nozero_cdg() {
     assert!(bb14_dependencies.is_empty());
     let bb14_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb14_name).sorted().collect();
     assert!(bb14_dependents.is_empty());
+
+    assert_eq!(cdg.is_control_dependent(&bb4_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb6_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb10_name, &bb8_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb10_name, &bb4_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb6_name, &bb8_name), false);
+    assert_eq!(cdg.is_control_dependent(&bb14_name, &bb2_name), false);
+    assert_eq!(cdg.is_control_dependent(&bb2_name, &bb4_name), false);
+    assert_eq!(cdg.is_control_dependent(&bb2_name, &bb2_name), false);
+    assert_eq!(cdg.is_control_dependent(&bb4_name, &bb4_name), false);
 }
 
 #[test]
@@ -896,4 +914,9 @@ fn has_switch_cdg() {
     assert!(bb14_dependencies.is_empty());
     let bb14_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb14_name).sorted().collect();
     assert!(bb14_dependents.is_empty());
+
+    assert_eq!(cdg.is_control_dependent(&bb4_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb12_name, &bb2_name), true);
+    assert_eq!(cdg.is_control_dependent(&bb14_name, &bb2_name), false);
+    assert_eq!(cdg.is_control_dependent(&bb4_name, &bb12_name), false);
 }

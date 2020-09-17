@@ -626,6 +626,11 @@ fn while_loop_cdg() {
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(6)]);
     assert_eq!(cdg.get_control_dependencies(&Name::from(12)).count(), 0);
+
+    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(1)), false);
+    assert_eq!(cdg.is_control_dependent(&Name::from(1), &Name::from(6)), false);
+    assert_eq!(cdg.is_control_dependent(&Name::from(1), &Name::from(1)), false);
+    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(6)), true);
 }
 
 #[test]
@@ -721,6 +726,12 @@ fn loop_with_cond_cdg() {
     assert_eq!(cdg.get_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(6), &Name::from(10), &Name::from(16)]);
     assert_eq!(cdg.get_control_dependencies(&Name::from(16)).sorted().collect::<Vec<_>>(), vec![&Name::from(16)]);
     assert_eq!(cdg.get_control_dependencies(&Name::from(20)).count(), 0);
+
+    assert_eq!(cdg.is_control_dependent(&Name::from(10), &Name::from(6)), true);
+    assert_eq!(cdg.is_control_dependent(&Name::from(10), &Name::from(16)), true);
+    assert_eq!(cdg.is_control_dependent(&Name::from(16), &Name::from(16)), true);
+    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(6)), false);
+    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(10)), false);
 }
 
 #[test]
