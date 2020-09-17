@@ -56,7 +56,7 @@ impl<'m> Analysis<'m> {
         }
     }
 
-    /// Get the `CallGraph` for the `Module`
+    /// Get the `CallGraph` for the `Module`.
     pub fn call_graph(&self) -> Ref<CallGraph<'m>> {
         self.call_graph.get_or_insert_with(|| {
             let functions_by_type = self.functions_by_type();
@@ -65,7 +65,7 @@ impl<'m> Analysis<'m> {
         })
     }
 
-    /// Get the `FunctionsByType` for the `Module`
+    /// Get the `FunctionsByType` for the `Module`.
     pub fn functions_by_type(&self) -> Ref<FunctionsByType<'m>> {
         self.functions_by_type.get_or_insert_with(|| {
             debug!("computing functions-by-type");
@@ -73,7 +73,7 @@ impl<'m> Analysis<'m> {
         })
     }
 
-    /// Get the `ControlFlowGraph` for the function with the given name
+    /// Get the `ControlFlowGraph` for the function with the given name.
     ///
     /// Panics if no function of that name exists in the `Module`.
     pub fn control_flow_graph(&self, func_name: &'m str) -> Ref<ControlFlowGraph<'m>> {
@@ -85,7 +85,7 @@ impl<'m> Analysis<'m> {
         })
     }
 
-    /// Get the `DominatorTree` for the function with the given name
+    /// Get the `DominatorTree` for the function with the given name.
     ///
     /// Panics if no function of that name exists in the `Module`.
     pub fn dominator_tree(&self, func_name: &'m str) -> Ref<DominatorTree<'m>> {
@@ -96,7 +96,7 @@ impl<'m> Analysis<'m> {
         })
     }
 
-    /// Get the `PostDominatorTree` for the function with the given name
+    /// Get the `PostDominatorTree` for the function with the given name.
     ///
     /// Panics if no function of that name exists in the `Module`.
     pub fn postdominator_tree(&self, func_name: &'m str) -> Ref<PostDominatorTree<'m>> {
@@ -107,7 +107,7 @@ impl<'m> Analysis<'m> {
         })
     }
 
-    /// Get the `ControlDependenceGraph` for the function with the given name
+    /// Get the `ControlDependenceGraph` for the function with the given name.
     ///
     /// Panics if no function of that name exists in the `Module`.
     pub fn control_dependence_graph(&self, func_name: &'m str) -> Ref<ControlDependenceGraph<'m>> {
