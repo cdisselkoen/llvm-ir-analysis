@@ -3,7 +3,10 @@ use either::Either;
 use llvm_ir::{Constant, Instruction, Module, Name, Operand, Type};
 use petgraph::prelude::*;
 
-/// Represents a call graph: which functions may call which other functions
+/// The call graph for the `Module`: which functions may call which other
+/// functions.
+///
+/// To construct a `CallGraph`, use [`Analysis`](struct.Analysis.html).
 pub struct CallGraph<'m> {
     /// the call graph itself. Nodes are function names, and an edge from F to G
     /// indicates F may call G

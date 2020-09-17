@@ -1,3 +1,9 @@
+//! This crate provides various analyses of LLVM IR, such as control-flow
+//! graphs, dominator trees, control dependence graphs, etc.
+//!
+//! For a more thorough introduction to the crate and how to get started,
+//! see the [crate's README](https://github.com/cdisselkoen/llvm-ir-analysis/blob/master/README.md).
+
 mod call_graph;
 mod control_dep_graph;
 mod control_flow_graph;

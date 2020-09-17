@@ -5,7 +5,9 @@ use petgraph::visit::Walker;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-/// The dominator tree for a particular function
+/// The dominator tree for a particular function.
+///
+/// To construct a `DominatorTree`, use [`Analysis`](struct.Analysis.html).
 pub struct DominatorTree<'m> {
     /// The graph itself. An edge from bbX to bbY indicates that bbX is the
     /// immediate dominator of bbY.
@@ -21,7 +23,9 @@ pub struct DominatorTree<'m> {
     pub(crate) entry_node: CFGNode<'m>,
 }
 
-/// The postdominator tree for a particular function
+/// The postdominator tree for a particular function.
+///
+/// To construct a `PostDominatorTree`, use [`Analysis`](struct.Analysis.html).
 pub struct PostDominatorTree<'m> {
     /// The graph itself. An edge from bbX to bbY indicates that bbX is the
     /// immediate postdominator of bbY.

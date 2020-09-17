@@ -2,7 +2,9 @@ use llvm_ir::{Function, Name, Terminator};
 use petgraph::prelude::{DiGraphMap, Direction};
 use std::fmt;
 
-/// The control flow graph for a particular function
+/// The control flow graph for a particular function.
+///
+/// To construct a `ControlFlowGraph`, use [`Analysis`](struct.Analysis.html).
 pub struct ControlFlowGraph<'m> {
     /// The graph itself. Nodes are basic block names, and an edge from bbX to
     /// bbY indicates that control may (immediately) flow from bbX to bbY

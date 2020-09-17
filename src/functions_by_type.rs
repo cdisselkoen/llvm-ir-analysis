@@ -2,7 +2,9 @@ use llvm_ir::{Module, TypeRef};
 use std::collections::{HashMap, HashSet};
 
 /// Allows you to iterate over all the functions in the `Module` with a specified
-/// type
+/// type.
+///
+/// To construct a `FunctionsByType`, use [`Analysis`](struct.Analysis.html).
 pub struct FunctionsByType<'m> {
     map: HashMap<TypeRef, HashSet<&'m str>>,
 }

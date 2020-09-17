@@ -3,6 +3,12 @@ name = "llvm-ir-analysis"
 version = "0.1.0"
 authors = ["Craig Disselkoen <craigdissel@gmail.com>"]
 edition = "2018"
+description = "Static analysis on LLVM IR"
+documentation = "https://docs.rs/llvm-ir-analysis"
+repository = "https://github.com/cdisselkoen/llvm-ir-analysis"
+readme = "README.md"
+keywords = ["llvm", "static", "analysis", "control-flow", "cfg", "dominator", "dependence"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

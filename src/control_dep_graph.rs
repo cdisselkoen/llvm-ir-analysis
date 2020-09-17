@@ -5,6 +5,10 @@ use petgraph::prelude::{DfsPostOrder, DiGraphMap, Direction};
 use petgraph::visit::Walker;
 use std::collections::HashSet;
 
+/// The control dependence graph for a particular function.
+/// https://en.wikipedia.org/wiki/Data_dependency#Control_Dependency
+///
+/// To construct a `ControlDependenceGraph`, use [`Analysis`](struct.Analysis.html).
 pub struct ControlDependenceGraph<'m> {
     /// The graph itself. An edge from bbX to bbY indicates that bbX has an
     /// immediate control dependence on bbY. A path from bbX to bbY indicates
