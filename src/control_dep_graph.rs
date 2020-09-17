@@ -28,7 +28,7 @@ impl<'m> ControlDependenceGraph<'m> {
             debug!("--- Computing postdominance frontier of {} ---", block_x);
             for block_y in cfg.preds_as_nodes(block_x) {
                 debug!("Processing predecessor {}", block_y);
-                if postdomtree.ipostdom_of_cfgnode(block_y) != block_x {
+                if postdomtree.ipostdom_of_cfgnode(block_y) != Some(block_x) {
                     debug!("  pushing it");
                     postdominance_frontier_of_x.push(block_y);
                 }
@@ -38,7 +38,7 @@ impl<'m> ControlDependenceGraph<'m> {
                 // we should have already computed all of the outgoing edges from block_z
                 for block_y in graph.neighbors_directed(block_z, Direction::Outgoing) {
                     debug!("Processing node {}, in the postdominance frontier of {}", block_y, block_z);
-                    if postdomtree.ipostdom_of_cfgnode(block_y) != block_x {
+                    if postdomtree.ipostdom_of_cfgnode(block_y) != Some(block_x) {
                         debug!("  pushing it");
                         postdominance_frontier_of_x.push(block_y);
                     }

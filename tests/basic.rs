@@ -468,7 +468,7 @@ fn trivial_domtrees() {
         assert_eq!(domtree.children(entry).collect::<Vec<_>>(), vec![CFGNode::Return]);
 
         let postdomtree = analysis.postdominator_tree(func_name);
-        assert_eq!(postdomtree.ipostdom(entry), CFGNode::Return);
+        assert_eq!(postdomtree.ipostdom(entry), Some(CFGNode::Return));
         assert_eq!(postdomtree.children(entry).count(), 0);
     }
 }
@@ -515,10 +515,10 @@ fn conditional_true_domtree() {
     assert_eq!(children, vec![CFGNode::Return]);
 
     let postdomtree = analysis.postdominator_tree("conditional_true");
-    assert_eq!(postdomtree.ipostdom(&bb2_name), bb12_node);
-    assert_eq!(postdomtree.ipostdom(&bb4_name), bb12_node);
-    assert_eq!(postdomtree.ipostdom(&bb8_name), bb12_node);
-    assert_eq!(postdomtree.ipostdom(&bb12_name), CFGNode::Return);
+    assert_eq!(postdomtree.ipostdom(&bb2_name), Some(bb12_node));
+    assert_eq!(postdomtree.ipostdom(&bb4_name), Some(bb12_node));
+    assert_eq!(postdomtree.ipostdom(&bb8_name), Some(bb12_node));
+    assert_eq!(postdomtree.ipostdom(&bb12_name), Some(CFGNode::Return));
 }
 
 #[test]
@@ -563,10 +563,10 @@ fn conditional_false_domtree() {
     assert_eq!(children, vec![CFGNode::Return]);
 
     let postdomtree = analysis.postdominator_tree("conditional_false");
-    assert_eq!(postdomtree.ipostdom(&bb2_name), bb12_node);
-    assert_eq!(postdomtree.ipostdom(&bb4_name), bb12_node);
-    assert_eq!(postdomtree.ipostdom(&bb8_name), bb12_node);
-    assert_eq!(postdomtree.ipostdom(&bb12_name), CFGNode::Return);
+    assert_eq!(postdomtree.ipostdom(&bb2_name), Some(bb12_node));
+    assert_eq!(postdomtree.ipostdom(&bb4_name), Some(bb12_node));
+    assert_eq!(postdomtree.ipostdom(&bb8_name), Some(bb12_node));
+    assert_eq!(postdomtree.ipostdom(&bb12_name), Some(CFGNode::Return));
 }
 
 #[test]
@@ -599,13 +599,13 @@ fn conditional_nozero_domtree() {
     assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
 
     let postdomtree = analysis.postdominator_tree("conditional_nozero");
-    assert_eq!(postdomtree.ipostdom(&Name::from(2)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(4)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(6)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(8)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(10)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(12)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(14)), CFGNode::Return);
+    assert_eq!(postdomtree.ipostdom(&Name::from(2)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(8)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(12)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(14)), Some(CFGNode::Return));
 }
 
 #[test]
@@ -639,14 +639,14 @@ fn has_switch_domtree() {
     assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
 
     let postdomtree = analysis.postdominator_tree("has_switch");
-    assert_eq!(postdomtree.ipostdom(&Name::from(2)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(4)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(5)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(7)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(10)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(11)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(12)), CFGNode::Block(&Name::from(14)));
-    assert_eq!(postdomtree.ipostdom(&Name::from(14)), CFGNode::Return);
+    assert_eq!(postdomtree.ipostdom(&Name::from(2)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(7)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(11)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(12)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(postdomtree.ipostdom(&Name::from(14)), Some(CFGNode::Return));
 }
 
 #[test]

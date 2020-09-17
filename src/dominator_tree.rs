@@ -227,6 +227,9 @@ impl<'m> PostDominatorTree<'m> {
 
     /// Get the immediate postdominator of the basic block with the given `Name`.
     ///
+    /// This will be `None` for unreachable blocks, and `Some` for all other
+    /// blocks.
+    ///
     /// A block bbX is the immediate postdominator of bbY if and only if:
     ///   - bbX strictly postdominates bbY, i.e., bbX appears on every control-flow
     ///     path from bbY to the function exit (but bbX =/= bbY)
@@ -235,17 +238,19 @@ impl<'m> PostDominatorTree<'m> {
     ///
     /// If the immediate postdominator is `CFGNode::Return`, that indicates that
     /// there is no single basic block that postdominates the given block.
-    pub fn ipostdom(&self, block: &'m Name) -> CFGNode<'m> {
+    pub fn ipostdom(&self, block: &'m Name) -> Option<CFGNode<'m>> {
         self.ipostdom_of_cfgnode(CFGNode::Block(block))
     }
 
-    pub(crate) fn ipostdom_of_cfgnode(&self, node: CFGNode<'m>) -> CFGNode<'m> {
+    /// See notes on `ipostdom()`, but in addition, this will be `None` for
+    /// `CFGNode::Return`
+    pub(crate) fn ipostdom_of_cfgnode(&self, node: CFGNode<'m>) -> Option<CFGNode<'m>> {
         let mut parents = self.graph.neighbors_directed(node, Direction::Incoming);
-        let ipostdom = parents.next().unwrap_or_else(|| panic!("Block {:?} should have an immediate postdominator", node));
+        let ipostdom = parents.next()?;
         if let Some(_) = parents.next() {
             panic!("Block {:?} should have only one immediate postdominator", node);
         }
-        ipostdom
+        Some(ipostdom)
     }
 
     /// Get the children of the given basic block in the postdominator tree, i.e.,
