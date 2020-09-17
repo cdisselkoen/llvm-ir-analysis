@@ -114,8 +114,9 @@ impl<'m> ControlDependenciesIterator<'m> {
         let mut worklist: Vec<&'m Name> = cdg.get_imm_control_dependencies(block).collect();
         let mut deps: HashSet<&'m Name> = HashSet::new();
         while let Some(block) = worklist.pop() {
-            deps.insert(block);
-            worklist.extend(cdg.get_imm_control_dependencies(block))
+            if deps.insert(block) {
+                worklist.extend(cdg.get_imm_control_dependencies(block))
+            }
         }
         Self {
             deps: deps.into_iter(),

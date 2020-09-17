@@ -618,9 +618,14 @@ fn while_loop_cdg() {
     //  12
 
     let cdg = analysis.control_dependence_graph("while_loop");
+
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(6)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(12)).count(), 0);
+
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(6)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(12)).count(), 0);
 }
 
 #[test]
@@ -638,9 +643,14 @@ fn for_loop_cdg() {
     //  6
 
     let cdg = analysis.control_dependence_graph("for_loop");
+
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(9)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(9)]);
+
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(6)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(9)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(9)]);
 }
 
 #[test]
@@ -662,11 +672,18 @@ fn loop_zero_iterations_cdg() {
     //  18
 
     let cdg = analysis.control_dependence_graph("loop_zero_iterations");
+
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).collect::<Vec<_>>(), vec![&Name::from(1)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(8)).collect::<Vec<_>>(), vec![&Name::from(1)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(11)).sorted().collect::<Vec<_>>(), vec![&Name::from(5), &Name::from(11)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(18)).count(), 0);
+
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(5)).collect::<Vec<_>>(), vec![&Name::from(1)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(8)).collect::<Vec<_>>(), vec![&Name::from(1)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(11)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(5), &Name::from(11)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(18)).count(), 0);
 }
 
 #[test]
@@ -690,12 +707,20 @@ fn loop_with_cond_cdg() {
     //  20
 
     let cdg = analysis.control_dependence_graph("loop_with_cond");
+
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(16)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(10)).collect::<Vec<_>>(), vec![&Name::from(6)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(6), &Name::from(10)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(16)).sorted().collect::<Vec<_>>(), vec![&Name::from(16)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(20)).count(), 0);
+
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(16)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(10)).sorted().collect::<Vec<_>>(), vec![&Name::from(6), &Name::from(16)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(6), &Name::from(10), &Name::from(16)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(16)).sorted().collect::<Vec<_>>(), vec![&Name::from(16)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(20)).count(), 0);
 }
 
 #[test]
@@ -713,10 +738,16 @@ fn loop_inside_cond_cdg() {
     //     12
 
     let cdg = analysis.control_dependence_graph("loop_inside_cond");
+
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(5)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(11)).collect::<Vec<_>>(), vec![&Name::from(1)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(12)).count(), 0);
+
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(5)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(11)).collect::<Vec<_>>(), vec![&Name::from(1)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(12)).count(), 0);
 }
 
 #[test]
@@ -738,12 +769,20 @@ fn search_array_cdg() {
     //     21
 
     let cdg = analysis.control_dependence_graph("search_array");
+
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(4)).collect::<Vec<_>>(), vec![&Name::from(4)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(11)).collect::<Vec<_>>(), vec![&Name::from(16)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(16)).collect::<Vec<_>>(), vec![&Name::from(11)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(19)).collect::<Vec<_>>(), vec![&Name::from(11)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(21)).count(), 0);
+
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(4)).collect::<Vec<_>>(), vec![&Name::from(4)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(11)).sorted().collect::<Vec<_>>(), vec![&Name::from(11), &Name::from(16)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(16)).sorted().collect::<Vec<_>>(), vec![&Name::from(11), &Name::from(16)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(19)).sorted().collect::<Vec<_>>(), vec![&Name::from(11), &Name::from(16)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(21)).count(), 0);
 }
 
 #[test]
@@ -766,9 +805,16 @@ fn nested_loop_cdg() {
     //  7
 
     let cdg = analysis.control_dependence_graph("nested_loop");
+
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(7)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(10)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10), &Name::from(13)]);
+
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(7)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(10)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10), &Name::from(13)]);
 }
