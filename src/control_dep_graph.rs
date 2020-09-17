@@ -1,7 +1,6 @@
 use crate::control_flow_graph::{CFGNode, ControlFlowGraph};
 use crate::dominator_tree::PostDominatorTree;
 use llvm_ir::Name;
-use log::debug;
 use petgraph::prelude::{DfsPostOrder, DiGraphMap, Direction};
 use petgraph::visit::Walker;
 use std::collections::HashSet;
@@ -25,21 +24,15 @@ impl<'m> ControlDependenceGraph<'m> {
 
         for block_x in DfsPostOrder::new(&postdomtree.graph, CFGNode::Return).iter(&postdomtree.graph) {
             let mut postdominance_frontier_of_x = vec![];
-            debug!("--- Computing postdominance frontier of {} ---", block_x);
             for block_y in cfg.preds_as_nodes(block_x) {
-                debug!("Processing predecessor {}", block_y);
                 if postdomtree.ipostdom_of_cfgnode(block_y) != Some(block_x) {
-                    debug!("  pushing it");
                     postdominance_frontier_of_x.push(block_y);
                 }
             }
             for block_z in postdomtree.children_of_cfgnode(block_x) {
-                debug!("block_z is {}, which is immediately postdominated by {}", block_z, block_x);
                 // we should have already computed all of the outgoing edges from block_z
                 for block_y in graph.neighbors_directed(block_z, Direction::Outgoing) {
-                    debug!("Processing node {}, in the postdominance frontier of {}", block_y, block_z);
                     if postdomtree.ipostdom_of_cfgnode(block_y) != Some(block_x) {
-                        debug!("  pushing it");
                         postdominance_frontier_of_x.push(block_y);
                     }
                 }

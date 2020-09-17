@@ -1,6 +1,5 @@
 use crate::control_flow_graph::{CFGNode, ControlFlowGraph};
 use llvm_ir::Name;
-use log::debug;
 use petgraph::prelude::{Dfs, DiGraphMap, Direction};
 use petgraph::visit::Walker;
 use std::cmp::Ordering;
@@ -104,7 +103,6 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
     /// `block` must be reachable in the CFG. Returns `None` only for the entry
     /// block.
     fn compute_idom(&self, block: CFGNode<'m>) -> Option<CFGNode<'m>> {
-        debug!("domtree: compute_idom for {}", block);
         if block == self.cfg.entry_node {
             return None;
         }
