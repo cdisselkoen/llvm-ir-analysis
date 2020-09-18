@@ -32,7 +32,7 @@ instructions, see [`llvm-ir`'s README](https://crates.io/crates/llvm-ir).
 
 Then, you can construct an [`Analysis`] object:
 ```rust
-let module = Module::from_bc_path(...);
+let module = Module::from_bc_path(...)?;
 let analysis = Analysis::new(&module);
 ```
 and you can get, e.g., the call graph via `analysis.call_graph()`.
