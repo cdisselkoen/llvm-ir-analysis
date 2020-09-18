@@ -73,7 +73,7 @@ impl<'m> ControlDependenceGraph<'m> {
         ControlDependenciesIterator::new(self, block)
     }
 
-    /// Get the blocks that have an immediate control dependency on `block`
+    /// Get the blocks that have an immediate control dependency on `block`.
     pub fn get_imm_control_dependents<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = CFGNode<'m>> + 's {
         self.get_imm_control_dependents_of_cfgnode(CFGNode::Block(block))
     }
