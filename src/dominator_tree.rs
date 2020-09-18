@@ -208,6 +208,23 @@ impl<'m> DominatorTree<'m> {
         self.graph.neighbors_directed(CFGNode::Block(block), Direction::Outgoing)
     }
 
+    /// Does `node_a` dominate `node_b`?
+    ///
+    /// Note that every node dominates itself by definition, so if
+    /// `node_a == node_b`, this returns `true`.
+    /// See also `strictly_dominates()`
+    pub fn dominates(&self, node_a: CFGNode<'m>, node_b: CFGNode<'m>) -> bool {
+        petgraph::algo::has_path_connecting(&self.graph, node_a, node_b, None)
+    }
+
+    /// Does `node_a` strictly dominate `node_b`?
+    ///
+    /// This is the same as `dominates()`, except that if
+    /// `node_a == node_b`, this returns `false`.
+    pub fn strictly_dominates(&self, node_a: CFGNode<'m>, node_b: CFGNode<'m>) -> bool {
+        node_a != node_b && self.dominates(node_a, node_b)
+    }
+
     /// Get the `Name` of the entry block for the function
     pub fn entry(&self) -> &'m Name {
         match self.entry_node {
@@ -276,5 +293,22 @@ impl<'m> PostDominatorTree<'m> {
             CFGNode::Block(block) => block,
             CFGNode::Return => panic!("Return node shouldn't be the immediate postdominator of itself"),
         })
+    }
+
+    /// Does `node_a` postdominate `node_b`?
+    ///
+    /// Note that every node postdominates itself by definition, so if
+    /// `node_a == node_b`, this returns `true`.
+    /// See also `strictly_postdominates()`
+    pub fn postdominates(&self, node_a: CFGNode<'m>, node_b: CFGNode<'m>) -> bool {
+        petgraph::algo::has_path_connecting(&self.graph, node_a, node_b, None)
+    }
+
+    /// Does `node_a` strictly postdominate `node_b`?
+    ///
+    /// This is the same as `postdominates()`, except that if
+    /// `node_a == node_b`, this returns `false`.
+    pub fn strictly_postdominates(&self, node_a: CFGNode<'m>, node_b: CFGNode<'m>) -> bool {
+        node_a != node_b && self.postdominates(node_a, node_b)
     }
 }
