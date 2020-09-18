@@ -7,12 +7,15 @@ fn init_logging() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-const HAYBALE_PANIC_BC_PATH: &'static str = "../haybale/tests/bcfiles/panic.bc";
+/// panic.c and panic.bc are taken from [`haybale`]'s test suite
+///
+/// [`haybale`]: https://crates.io/crates/haybale
+const PANIC_BC_PATH: &'static str = "tests/bcfiles/panic.bc";
 
 #[test]
 fn begin_panic_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_PANIC_BC_PATH)
+    let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E");
@@ -115,7 +118,7 @@ fn begin_panic_cfg() {
 #[test]
 fn begin_panic_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_PANIC_BC_PATH)
+    let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -171,7 +174,7 @@ fn begin_panic_domtree() {
 #[test]
 fn begin_panic_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_PANIC_BC_PATH)
+    let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 

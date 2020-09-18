@@ -7,9 +7,12 @@ fn init_logging() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-const HAYBALE_BASIC_BC_PATH: &'static str = "../haybale/tests/bcfiles/basic.bc";
+/// basic.c and basic.bc are taken from [`haybale`]'s test suite
+///
+/// [`haybale`]: https://crates.io/crates/haybale
+const BASIC_BC_PATH: &'static str = "tests/bcfiles/basic.bc";
 
-/// Function names in haybale's basic.bc
+/// Function names in basic.bc
 const FUNC_NAMES: &'static [&'static str] = &[
     "no_args_zero",
     "no_args_nozero",
@@ -34,7 +37,7 @@ const FUNC_NAMES: &'static [&'static str] = &[
 #[test]
 fn call_graph() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let callgraph = analysis.call_graph();
@@ -49,7 +52,7 @@ fn call_graph() {
 #[test]
 fn functions_by_type() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let fbt = analysis.functions_by_type();
@@ -154,7 +157,7 @@ fn functions_by_type() {
 #[test]
 fn trivial_cfgs() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -185,7 +188,7 @@ fn trivial_cfgs() {
 #[test]
 fn conditional_true_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("conditional_true");
@@ -230,7 +233,7 @@ fn conditional_true_cfg() {
 #[test]
 fn conditional_false_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("conditional_false");
@@ -275,7 +278,7 @@ fn conditional_false_cfg() {
 #[test]
 fn conditional_nozero_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("conditional_nozero");
@@ -347,7 +350,7 @@ fn conditional_nozero_cfg() {
 #[test]
 fn has_switch_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("has_switch");
@@ -442,7 +445,7 @@ fn has_switch_cfg() {
 #[test]
 fn trivial_domtrees() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -492,7 +495,7 @@ fn trivial_domtrees() {
 #[test]
 fn conditional_true_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -550,7 +553,7 @@ fn conditional_true_domtree() {
 #[test]
 fn conditional_false_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -608,7 +611,7 @@ fn conditional_false_domtree() {
 #[test]
 fn conditional_nozero_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -663,7 +666,7 @@ fn conditional_nozero_domtree() {
 #[test]
 fn has_switch_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -704,7 +707,7 @@ fn has_switch_domtree() {
 #[test]
 fn trivial_control_deps() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -734,7 +737,7 @@ fn trivial_control_deps() {
 #[test]
 fn conditional_true_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -780,7 +783,7 @@ fn conditional_true_cdg() {
 #[test]
 fn conditional_false_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -826,7 +829,7 @@ fn conditional_false_cdg() {
 #[test]
 fn conditional_nozero_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -916,7 +919,7 @@ fn conditional_nozero_cdg() {
 #[test]
 fn has_switch_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_BASIC_BC_PATH)
+    let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 

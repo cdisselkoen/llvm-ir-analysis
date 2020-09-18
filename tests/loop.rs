@@ -7,12 +7,15 @@ fn init_logging() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-const HAYBALE_LOOP_BC_PATH: &'static str = "../haybale/tests/bcfiles/loop.bc";
+/// loop.c and loop.bc are taken from [`haybale`]'s test suite
+///
+/// [`haybale`]: https://crates.io/crates/haybale
+const LOOP_BC_PATH: &'static str = "tests/bcfiles/loop.bc";
 
 #[test]
 fn while_loop_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("while_loop");
@@ -52,7 +55,7 @@ fn while_loop_cfg() {
 #[test]
 fn for_loop_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("for_loop");
@@ -91,7 +94,7 @@ fn for_loop_cfg() {
 #[test]
 fn loop_zero_iterations_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("loop_zero_iterations");
@@ -147,7 +150,7 @@ fn loop_zero_iterations_cfg() {
 #[test]
 fn loop_with_cond_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("loop_with_cond");
@@ -213,7 +216,7 @@ fn loop_with_cond_cfg() {
 #[test]
 fn loop_inside_cond_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("loop_inside_cond");
@@ -258,7 +261,7 @@ fn loop_inside_cond_cfg() {
 #[test]
 fn search_array_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("search_array");
@@ -321,7 +324,7 @@ fn search_array_cfg() {
 #[test]
 fn nested_loop_cfg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let cfg = analysis.control_flow_graph("nested_loop");
@@ -378,7 +381,7 @@ fn nested_loop_cfg() {
 #[test]
 fn while_loop_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -406,7 +409,7 @@ fn while_loop_domtree() {
 #[test]
 fn for_loop_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -432,7 +435,7 @@ fn for_loop_domtree() {
 #[test]
 fn loop_zero_iterations_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -466,7 +469,7 @@ fn loop_zero_iterations_domtree() {
 #[test]
 fn loop_with_cond_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -504,7 +507,7 @@ fn loop_with_cond_domtree() {
 #[test]
 fn loop_inside_cond_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -532,7 +535,7 @@ fn loop_inside_cond_domtree() {
 #[test]
 fn search_array_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -568,7 +571,7 @@ fn search_array_domtree() {
 #[test]
 fn nested_loop_domtree() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -604,7 +607,7 @@ fn nested_loop_domtree() {
 #[test]
 fn while_loop_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -636,7 +639,7 @@ fn while_loop_cdg() {
 #[test]
 fn for_loop_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -661,7 +664,7 @@ fn for_loop_cdg() {
 #[test]
 fn loop_zero_iterations_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -694,7 +697,7 @@ fn loop_zero_iterations_cdg() {
 #[test]
 fn loop_with_cond_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -737,7 +740,7 @@ fn loop_with_cond_cdg() {
 #[test]
 fn loop_inside_cond_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -764,7 +767,7 @@ fn loop_inside_cond_cdg() {
 #[test]
 fn search_array_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 
@@ -799,7 +802,7 @@ fn search_array_cdg() {
 #[test]
 fn nested_loop_cdg() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_LOOP_BC_PATH)
+    let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
 

@@ -7,13 +7,17 @@ fn init_logging() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-const HAYBALE_CALL_BC_PATH: &'static str = "../haybale/tests/bcfiles/call.bc";
-const HAYBALE_FUNCTIONPTR_BC_PATH: &'static str = "../haybale/tests/bcfiles/functionptr.bc";
+/// call.c / call.bc and functionptr.c / functionptr.bc are taken from
+/// [`haybale`]'s test suite
+///
+/// [`haybale`]: https://crates.io/crates/haybale
+const CALL_BC_PATH: &'static str = "tests/bcfiles/call.bc";
+const FUNCTIONPTR_BC_PATH: &'static str = "tests/bcfiles/functionptr.bc";
 
 #[test]
 fn call_graph() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_CALL_BC_PATH)
+    let module = Module::from_bc_path(CALL_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let callgraph = analysis.call_graph();
@@ -93,7 +97,7 @@ fn call_graph() {
 #[test]
 fn functionptr_call_graph() {
     init_logging();
-    let module = Module::from_bc_path(HAYBALE_FUNCTIONPTR_BC_PATH)
+    let module = Module::from_bc_path(FUNCTIONPTR_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
     let fbt = analysis.functions_by_type();
