@@ -7,12 +7,13 @@ fn init_logging() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-/// call.c / call.bc and functionptr.c / functionptr.bc are taken from
-/// [`haybale`]'s test suite
+/// call.c / call.bc, functionptr.c / functionptr.bc, and crossmod.c /
+/// crossmod.bc are all taken from [`haybale`]'s test suite
 ///
 /// [`haybale`]: https://crates.io/crates/haybale
 const CALL_BC_PATH: &'static str = "tests/bcfiles/call.bc";
 const FUNCTIONPTR_BC_PATH: &'static str = "tests/bcfiles/functionptr.bc";
+const CROSSMOD_BC_PATH: &'static str = "tests/bcfiles/crossmod.bc";
 
 #[test]
 fn call_graph() {
@@ -139,4 +140,42 @@ fn functionptr_call_graph() {
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("struct_driver").sorted().collect();
     assert_eq!(callees, vec!["calls_through_struct", "get_function_ptr", "llvm.lifetime.end.p0i8", "llvm.lifetime.start.p0i8", "llvm.memset.p0i8.i64"]);
+}
+
+#[test]
+fn crossmod_call_graph() {
+    init_logging();
+    let call_module = Module::from_bc_path(CALL_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let crossmod_module = Module::from_bc_path(CROSSMOD_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let modules = [call_module, crossmod_module];
+    let analysis = Analysis::new_multi_module(&modules);
+    let callgraph = analysis.call_graph();
+
+    // this function isn't involved in cross-module calls, it should still have the same results
+    let callers: Vec<&str> = callgraph.callers("conditional_caller").sorted().collect();
+    assert!(callers.is_empty());
+    let callees: Vec<&str> = callgraph.callees("conditional_caller").sorted().collect();
+    assert_eq!(callees, vec!["simple_callee"]);
+
+    // this function also isn't involved in cross-module calls; it sits in the other module
+    let callers: Vec<&str> = callgraph.callers("cross_module_nested_near_caller").sorted().collect();
+    assert!(callers.is_empty());
+    let callees: Vec<&str> = callgraph.callees("cross_module_nested_near_caller").sorted().collect();
+    assert_eq!(callees, vec!["cross_module_simple_caller"]);
+
+    // this function is called cross-module
+    let callers: Vec<&str> = callgraph.callers("simple_callee").sorted().collect();
+    assert_eq!(callers, vec![
+        "caller_with_loop",
+        "conditional_caller",
+        "cross_module_simple_caller",
+        "cross_module_twice_caller",
+        "recursive_and_normal_caller",
+        "simple_caller",
+        "twice_caller",
+    ]);
+    let callees: Vec<&str> = callgraph.callees("simple_callee").sorted().collect();
+    assert!(callees.is_empty());
 }

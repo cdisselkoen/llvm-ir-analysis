@@ -8,6 +8,7 @@ all: basic.bc basic.ll \
 			loop.bc loop.ll \
 			call.bc call.ll \
 			functionptr.bc functionptr.ll \
+			crossmod.bc crossmod.ll \
 			panic.bc panic.ll \
 
 %.ll : %.c
