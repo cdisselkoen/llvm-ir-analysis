@@ -148,7 +148,7 @@ impl<'m> Analysis<'m> {
     ///
     /// Returns both the `Function` and the `Module` it was found in, or `None`
     /// if no function was found with that name.
-    pub fn get_func_by_name(&self, func_name: &'m str) -> Option<(&'m Function, &'m Module)> {
+    pub fn get_func_by_name(&self, func_name: &str) -> Option<(&'m Function, &'m Module)> {
         let mut retval = None;
         for &module in &self.modules {
             if let Some(func) = module.get_func_by_name(func_name) {
