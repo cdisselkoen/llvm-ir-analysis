@@ -22,7 +22,8 @@ feature corresponding to the LLVM version you want:
 [dependencies]
 llvm-ir-analysis = { version = "0.1.0", features = ["llvm-10"] }
 ```
-Currently, the supported LLVM versions are `llvm-8`, `llvm-9`, and `llvm-10`.
+As of 0.1.0, the supported LLVM versions are `llvm-8`, `llvm-9`, and
+`llvm-10`; the current Git `master` also supports `llvm-11`.
 The corresponding LLVM library must be available on your system; see the
 [`llvm-sys`] README for more details and instructions.
 
@@ -39,5 +40,5 @@ and you can get, e.g., the call graph via `analysis.call_graph()`.
 
 [`llvm-ir`]: https://crates.io/crates/llvm-ir
 [`llvm-sys`]: https://crates.io/crates/llvm-sys
-[`Module`]: https://docs.rs/llvm-ir/0.7.1/llvm_ir/module/struct.Module.html
+[`Module`]: https://docs.rs/llvm-ir/0.7.3/llvm_ir/module/struct.Module.html
 [`Analysis`]: https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.Analysis.html
