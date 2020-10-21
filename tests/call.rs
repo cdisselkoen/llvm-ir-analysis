@@ -20,7 +20,7 @@ fn call_graph() {
     init_logging();
     let module = Module::from_bc_path(CALL_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let callgraph = analysis.call_graph();
 
     let callers: Vec<&str> = callgraph.callers("simple_callee").sorted().collect();
@@ -100,7 +100,7 @@ fn functionptr_call_graph() {
     init_logging();
     let module = Module::from_bc_path(FUNCTIONPTR_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fbt = analysis.functions_by_type();
     let callgraph = analysis.call_graph();
 
@@ -150,7 +150,7 @@ fn crossmod_call_graph() {
     let crossmod_module = Module::from_bc_path(CROSSMOD_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let modules = [call_module, crossmod_module];
-    let analysis = Analysis::new_multi_module(&modules);
+    let analysis = CrossModuleAnalysis::new(&modules);
     let callgraph = analysis.call_graph();
 
     // this function isn't involved in cross-module calls, it should still have the same results

@@ -6,7 +6,8 @@ use petgraph::prelude::*;
 /// The call graph for the analyzed `Module`(s): which functions may call which
 /// other functions.
 ///
-/// To construct a `CallGraph`, use [`Analysis`](struct.Analysis.html).
+/// To construct a `CallGraph`, use [`ModuleAnalysis`](struct.ModuleAnalysis.html)
+/// or [`CrossModuleAnalysis`](struct.CrossModuleAnalysis.html).
 pub struct CallGraph<'m> {
     /// the call graph itself. Nodes are function names, and an edge from F to G
     /// indicates F may call G

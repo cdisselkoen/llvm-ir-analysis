@@ -4,7 +4,8 @@ use std::collections::{HashMap, HashSet};
 /// Allows you to iterate over all the functions in the analyzed `Module`(s) that
 /// have a specified type.
 ///
-/// To construct a `FunctionsByType`, use [`Analysis`](struct.Analysis.html).
+/// To construct a `FunctionsByType`, use [`ModuleAnalysis`](struct.ModuleAnalysis.html)
+/// or [`CrossModuleAnalysis`](struct.CrossModuleAnalysis.html).
 pub struct FunctionsByType<'m> {
     map: HashMap<TypeRef, HashSet<&'m str>>,
 }

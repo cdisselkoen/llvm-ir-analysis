@@ -4,7 +4,9 @@ use std::fmt;
 
 /// The control flow graph for a particular function.
 ///
-/// To construct a `ControlFlowGraph`, use [`Analysis`](struct.Analysis.html).
+/// To construct a `ControlFlowGraph`, use
+/// [`FunctionAnalysis`](struct.FunctionAnalysis.html), which you can get
+/// from [`ModuleAnalysis`](struct.ModuleAnalysis.html).
 pub struct ControlFlowGraph<'m> {
     /// The graph itself. Nodes are basic block names, and an edge from bbX to
     /// bbY indicates that control may (immediately) flow from bbX to bbY

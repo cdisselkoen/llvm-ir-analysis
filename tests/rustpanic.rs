@@ -17,7 +17,7 @@ fn begin_panic_cfg() {
     init_logging();
     let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E").control_flow_graph();
 
     // CFG:
@@ -120,7 +120,7 @@ fn begin_panic_domtree() {
     init_logging();
     let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E");
 
     // CFG:
@@ -177,7 +177,7 @@ fn begin_panic_cdg() {
     init_logging();
     let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //         start

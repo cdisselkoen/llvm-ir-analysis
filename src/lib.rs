@@ -20,45 +20,99 @@ use log::debug;
 use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 
-/// Computes (and caches the results of) various analyses on a given `Module` or set of `Module`s.
-pub struct Analysis<'m> {
-    /// Reference to the `llvm-ir` `Module`s
-    modules: Vec<&'m Module>,
-    /// Call graph
+/// Computes (and caches the results of) various analyses on a given `Module`
+pub struct ModuleAnalysis<'m> {
+    /// Reference to the `llvm-ir` `Module`
+    module: &'m Module,
+    /// Call graph for the module
     call_graph: SimpleCache<CallGraph<'m>>,
-    /// `FunctionsByType`, which allows you to iterate over functions by type
+    /// `FunctionsByType`, which allows you to iterate over the module's
+    /// functions by type
     functions_by_type: SimpleCache<FunctionsByType<'m>>,
     /// Map from function name to the `FunctionAnalysis` for that function
     fn_analyses: HashMap<&'m str, FunctionAnalysis<'m>>,
 }
 
-impl<'m> Analysis<'m> {
-    /// Create a new `Analysis` for the given `Module`.
+impl<'m> ModuleAnalysis<'m> {
+    /// Create a new `ModuleAnalysis` for the given `Module`.
     ///
     /// This method itself is cheap; individual analyses will be computed lazily
     /// on demand.
     pub fn new(module: &'m Module) -> Self {
-        Self::new_multi_module(std::iter::once(module))
+        Self {
+            module,
+            call_graph: SimpleCache::new(),
+            functions_by_type: SimpleCache::new(),
+            fn_analyses: module.functions.iter()
+                .map(|f| (f.name.as_str(), FunctionAnalysis::new(f)))
+                .collect(),
+        }
     }
 
-    /// Create a new `Analysis` for the given set of `Module`s.
+    /// Get a reference to the `Module` which the `ModuleAnalysis` was created
+    /// with.
+    pub fn module(&self) -> &'m Module {
+        self.module
+    }
+
+    /// Get the `CallGraph` for the `Module`.
+    pub fn call_graph(&self) -> Ref<CallGraph<'m>> {
+        self.call_graph.get_or_insert_with(|| {
+            let functions_by_type = self.functions_by_type();
+            debug!("computing single-module call graph");
+            CallGraph::new(std::iter::once(self.module), &functions_by_type)
+        })
+    }
+
+    /// Get the `FunctionsByType` for the `Module`.
+    pub fn functions_by_type(&self) -> Ref<FunctionsByType<'m>> {
+        self.functions_by_type.get_or_insert_with(|| {
+            debug!("computing single-module functions-by-type");
+            FunctionsByType::new(std::iter::once(self.module))
+        })
+    }
+
+    /// Get the `FunctionAnalysis` for the function with the given name.
+    ///
+    /// Panics if no function of that name exists in the `Module` which the
+    /// `ModuleAnalysis` was created with.
+    pub fn fn_analysis<'s>(&'s self, func_name: &str) -> &'s FunctionAnalysis<'m> {
+        self.fn_analyses.get(func_name)
+            .unwrap_or_else(|| panic!("Function named {:?} not found in the Module", func_name))
+    }
+}
+
+/// Analyzes multiple `Module`s, providing a `ModuleAnalysis` for each; and also
+/// provides a few additional cross-module analyses (e.g., a cross-module call
+/// graph)
+pub struct CrossModuleAnalysis<'m> {
+    /// Reference to the `llvm-ir` `Module`s
+    modules: Vec<&'m Module>,
+    /// Cross-module call graph
+    call_graph: SimpleCache<CallGraph<'m>>,
+    /// `FunctionsByType`, which allows you to iterate over functions by type
+    functions_by_type: SimpleCache<FunctionsByType<'m>>,
+    /// Map from module name to the `ModuleAnalysis` for that module
+    module_analyses: HashMap<&'m str, ModuleAnalysis<'m>>,
+}
+
+impl<'m> CrossModuleAnalysis<'m> {
+    /// Create a new `CrossModuleAnalysis` for the given set of `Module`s.
     ///
     /// This method itself is cheap; individual analyses will be computed lazily
     /// on demand.
-    pub fn new_multi_module(modules: impl IntoIterator<Item = &'m Module>) -> Self {
+    pub fn new(modules: impl IntoIterator<Item = &'m Module>) -> Self {
         let modules: Vec<&'m Module> = modules.into_iter().collect();
-        let fn_analyses = modules
+        let module_analyses = modules
             .iter()
             .copied()
-            .map(|m| m.functions.iter())
-            .flatten()
-            .map(|f| (f.name.as_str(), FunctionAnalysis::new(f)))
+            .map(|m| (m.name.as_str(), ModuleAnalysis::new(m)))
             .collect();
         Self {
             modules,
             call_graph: SimpleCache::new(),
             functions_by_type: SimpleCache::new(),
-            fn_analyses,
+            module_analyses,
         }
     }
 
@@ -72,11 +126,13 @@ impl<'m> Analysis<'m> {
         self.modules().map(|m| m.functions.iter()).flatten()
     }
 
-    /// Get the `CallGraph` for the `Module`(s).
+    /// Get the full `CallGraph` for the `Module`(s).
+    ///
+    /// This will include both cross-module and within-module calls.
     pub fn call_graph(&self) -> Ref<CallGraph<'m>> {
         self.call_graph.get_or_insert_with(|| {
             let functions_by_type = self.functions_by_type();
-            debug!("computing call graph");
+            debug!("computing multi-module call graph");
             CallGraph::new(self.modules(), &functions_by_type)
         })
     }
@@ -84,18 +140,18 @@ impl<'m> Analysis<'m> {
     /// Get the `FunctionsByType` for the `Module`(s).
     pub fn functions_by_type(&self) -> Ref<FunctionsByType<'m>> {
         self.functions_by_type.get_or_insert_with(|| {
-            debug!("computing functions-by-type");
+            debug!("computing multi-module functions-by-type");
             FunctionsByType::new(self.modules())
         })
     }
 
-    /// Get the `FunctionAnalysis` for the function with the given name.
+    /// Get the `ModuleAnalysis` for the module with the given name.
     ///
-    /// Panics if no function of that name exists in the `Module`(s)
-    /// which the `Analysis` was created with.
-    pub fn fn_analysis<'s>(&'s self, func_name: &str) -> &'s FunctionAnalysis<'m> {
-        self.fn_analyses.get(func_name)
-            .unwrap_or_else(|| panic!("Function named {:?} not found in the Module(s)", func_name))
+    /// Panics if no module of that name exists in the `Module`(s) which the
+    /// `CrossModuleAnalysis` was created with.
+    pub fn module_analysis<'s>(&'s self, mod_name: &str) -> &'s ModuleAnalysis<'m> {
+        self.module_analyses.get(mod_name)
+            .unwrap_or_else(|| panic!("Module named {:?} not found in the CrossModuleAnalysis", mod_name))
     }
 
     /// Get the `Function` with the given name from the analyzed `Module`(s).

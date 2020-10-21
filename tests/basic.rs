@@ -39,7 +39,7 @@ fn call_graph() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let callgraph = analysis.call_graph();
 
     // none of these functions have calls or are called
@@ -54,7 +54,7 @@ fn functions_by_type() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fbt = analysis.functions_by_type();
 
     let functy = module.types.func_type(
@@ -159,7 +159,7 @@ fn trivial_cfgs() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     for func_name in &[
         "no_args_zero",
@@ -190,7 +190,7 @@ fn conditional_true_cfg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("conditional_true").control_flow_graph();
 
     // CFG:
@@ -235,7 +235,7 @@ fn conditional_false_cfg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("conditional_false").control_flow_graph();
 
     // CFG:
@@ -280,7 +280,7 @@ fn conditional_nozero_cfg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("conditional_nozero").control_flow_graph();
 
     // CFG:
@@ -352,7 +352,7 @@ fn has_switch_cfg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("has_switch").control_flow_graph();
 
     // CFG:
@@ -447,7 +447,7 @@ fn trivial_domtrees() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     for func_name in &[
         "no_args_zero",
@@ -497,7 +497,7 @@ fn conditional_true_domtree() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //     2
@@ -555,7 +555,7 @@ fn conditional_false_domtree() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //     2
@@ -613,7 +613,7 @@ fn conditional_nozero_domtree() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //  2
@@ -668,7 +668,7 @@ fn has_switch_domtree() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //           2
@@ -709,7 +709,7 @@ fn trivial_control_deps() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     for func_name in &[
         "no_args_zero",
@@ -739,7 +739,7 @@ fn conditional_true_cdg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //     2
@@ -785,7 +785,7 @@ fn conditional_false_cdg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //     2
@@ -831,7 +831,7 @@ fn conditional_nozero_cdg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //  2
@@ -921,7 +921,7 @@ fn has_switch_cdg() {
     init_logging();
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //           2

@@ -7,7 +7,9 @@ use std::collections::HashMap;
 
 /// The dominator tree for a particular function.
 ///
-/// To construct a `DominatorTree`, use [`Analysis`](struct.Analysis.html).
+/// To construct a `DominatorTree`, use
+/// [`FunctionAnalysis`](struct.FunctionAnalysis.html), which you can get
+/// from [`ModuleAnalysis`](struct.ModuleAnalysis.html).
 pub struct DominatorTree<'m> {
     /// The graph itself. An edge from bbX to bbY indicates that bbX is the
     /// immediate dominator of bbY.
@@ -25,7 +27,9 @@ pub struct DominatorTree<'m> {
 
 /// The postdominator tree for a particular function.
 ///
-/// To construct a `PostDominatorTree`, use [`Analysis`](struct.Analysis.html).
+/// To construct a `PostDominatorTree`, use
+/// [`FunctionAnalysis`](struct.FunctionAnalysis.html), which you can get
+/// from [`ModuleAnalysis`](struct.ModuleAnalysis.html).
 pub struct PostDominatorTree<'m> {
     /// The graph itself. An edge from bbX to bbY indicates that bbX is the
     /// immediate postdominator of bbY.

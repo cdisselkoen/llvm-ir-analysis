@@ -8,7 +8,9 @@ use std::collections::HashSet;
 /// The control dependence graph for a particular function.
 /// https://en.wikipedia.org/wiki/Data_dependency#Control_Dependency
 ///
-/// To construct a `ControlDependenceGraph`, use [`Analysis`](struct.Analysis.html).
+/// To construct a `ControlDependenceGraph`, use
+/// [`FunctionAnalysis`](struct.FunctionAnalysis.html), which you can get
+/// from [`ModuleAnalysis`](struct.ModuleAnalysis.html).
 pub struct ControlDependenceGraph<'m> {
     /// The graph itself. An edge from bbX to bbY indicates that bbX has an
     /// immediate control dependence on bbY. A path from bbX to bbY indicates

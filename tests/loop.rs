@@ -17,7 +17,7 @@ fn while_loop_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("while_loop").control_flow_graph();
 
     // CFG:
@@ -57,7 +57,7 @@ fn for_loop_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("for_loop").control_flow_graph();
 
     // CFG:
@@ -96,7 +96,7 @@ fn loop_zero_iterations_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("loop_zero_iterations").control_flow_graph();
 
     // CFG:
@@ -152,7 +152,7 @@ fn loop_with_cond_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("loop_with_cond").control_flow_graph();
 
     // CFG:
@@ -218,7 +218,7 @@ fn loop_inside_cond_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("loop_inside_cond").control_flow_graph();
 
     // CFG:
@@ -263,7 +263,7 @@ fn search_array_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("search_array").control_flow_graph();
 
     // CFG:
@@ -326,7 +326,7 @@ fn nested_loop_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let cfg = analysis.fn_analysis("nested_loop").control_flow_graph();
 
     // CFG:
@@ -383,7 +383,7 @@ fn while_loop_domtree() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("while_loop");
 
     // CFG:
@@ -412,7 +412,7 @@ fn for_loop_domtree() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("for_loop");
 
     // CFG:
@@ -439,7 +439,7 @@ fn loop_zero_iterations_domtree() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("loop_zero_iterations");
 
     // CFG:
@@ -474,7 +474,7 @@ fn loop_with_cond_domtree() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("loop_with_cond");
 
     // CFG:
@@ -513,7 +513,7 @@ fn loop_inside_cond_domtree() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("loop_inside_cond");
 
     // CFG:
@@ -542,7 +542,7 @@ fn search_array_domtree() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("search_array");
 
     // CFG:
@@ -579,7 +579,7 @@ fn nested_loop_domtree() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
     let fn_analysis = analysis.fn_analysis("nested_loop");
 
     // CFG:
@@ -616,7 +616,7 @@ fn while_loop_cdg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //  1
@@ -648,7 +648,7 @@ fn for_loop_cdg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //  1      _
@@ -673,7 +673,7 @@ fn loop_zero_iterations_cdg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //   1
@@ -706,7 +706,7 @@ fn loop_with_cond_cdg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //   1
@@ -749,7 +749,7 @@ fn loop_inside_cond_cdg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //      1      _
@@ -776,7 +776,7 @@ fn search_array_cdg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //      1   _
@@ -811,7 +811,7 @@ fn nested_loop_cdg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
-    let analysis = Analysis::new(&module);
+    let analysis = ModuleAnalysis::new(&module);
 
     // CFG:
     //  1
