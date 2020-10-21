@@ -18,7 +18,7 @@ fn begin_panic_cfg() {
     let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E");
+    let cfg = analysis.fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E").control_flow_graph();
 
     // CFG:
     //         start
@@ -121,6 +121,7 @@ fn begin_panic_domtree() {
     let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E");
 
     // CFG:
     //         start
@@ -142,7 +143,7 @@ fn begin_panic_domtree() {
     //     |
     //   (ret)
 
-    let domtree = analysis.dominator_tree("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from("start")), None);
     assert_eq!(domtree.idom(&Name::from("bb1")), Some(&Name::from("bb6")));
     assert_eq!(domtree.idom(&Name::from("bb2")), Some(&Name::from("start")));
@@ -154,7 +155,7 @@ fn begin_panic_domtree() {
     assert_eq!(domtree.idom(&Name::from("cleanup1")), Some(&Name::from("bb2")));
     assert_eq!(domtree.idom(&Name::from("unreachable")), Some(&Name::from("bb4")));
 
-    let postdomtree = analysis.postdominator_tree("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E");
+    let postdomtree = fn_analysis.postdominator_tree();
     // especially relevant for postdomtree (and CDG below): our algorithm
     // doesn't consider unreachable blocks, so postdominators are calculated
     // considering only the subset of the CFG which is reachable.
@@ -198,7 +199,7 @@ fn begin_panic_cdg() {
     //     |
     //   (ret)
 
-    let cdg = analysis.control_dependence_graph("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E");
+    let cdg = analysis.fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E").control_dependence_graph();
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from("start")).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb1")).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb2")).collect::<Vec<_>>(), vec![&Name::from("start")]);

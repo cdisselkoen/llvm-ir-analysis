@@ -18,7 +18,7 @@ fn while_loop_cfg() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("while_loop");
+    let cfg = analysis.fn_analysis("while_loop").control_flow_graph();
 
     // CFG:
     //  1
@@ -58,7 +58,7 @@ fn for_loop_cfg() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("for_loop");
+    let cfg = analysis.fn_analysis("for_loop").control_flow_graph();
 
     // CFG:
     //  1      _
@@ -97,7 +97,7 @@ fn loop_zero_iterations_cfg() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("loop_zero_iterations");
+    let cfg = analysis.fn_analysis("loop_zero_iterations").control_flow_graph();
 
     // CFG:
     //   1
@@ -153,7 +153,7 @@ fn loop_with_cond_cfg() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("loop_with_cond");
+    let cfg = analysis.fn_analysis("loop_with_cond").control_flow_graph();
 
     // CFG:
     //   1
@@ -219,7 +219,7 @@ fn loop_inside_cond_cfg() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("loop_inside_cond");
+    let cfg = analysis.fn_analysis("loop_inside_cond").control_flow_graph();
 
     // CFG:
     //      1      _
@@ -264,7 +264,7 @@ fn search_array_cfg() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("search_array");
+    let cfg = analysis.fn_analysis("search_array").control_flow_graph();
 
     // CFG:
     //      1   _
@@ -327,7 +327,7 @@ fn nested_loop_cfg() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("nested_loop");
+    let cfg = analysis.fn_analysis("nested_loop").control_flow_graph();
 
     // CFG:
     //  1
@@ -384,6 +384,7 @@ fn while_loop_domtree() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("while_loop");
 
     // CFG:
     //  1
@@ -394,13 +395,13 @@ fn while_loop_domtree() {
     //  |
     //  12
 
-    let domtree = analysis.dominator_tree("while_loop");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(6)));
     assert_eq!(domtree.idom_of_return(), &Name::from(12));
 
-    let postdomtree = analysis.postdominator_tree("while_loop");
+    let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
     assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Block(&Name::from(12))));
     assert_eq!(postdomtree.ipostdom(&Name::from(12)), Some(CFGNode::Return));
@@ -412,6 +413,7 @@ fn for_loop_domtree() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("for_loop");
 
     // CFG:
     //  1      _
@@ -420,13 +422,13 @@ fn for_loop_domtree() {
     //  | /
     //  6
 
-    let domtree = analysis.dominator_tree("for_loop");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(9)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(6));
 
-    let postdomtree = analysis.postdominator_tree("for_loop");
+    let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
     assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Return));
     assert_eq!(postdomtree.ipostdom(&Name::from(9)), Some(CFGNode::Block(&Name::from(6))));
@@ -438,6 +440,7 @@ fn loop_zero_iterations_domtree() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("loop_zero_iterations");
 
     // CFG:
     //   1
@@ -450,7 +453,7 @@ fn loop_zero_iterations_domtree() {
     //   | /
     //  18
 
-    let domtree = analysis.dominator_tree("loop_zero_iterations");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(8)), Some(&Name::from(5)));
@@ -458,7 +461,7 @@ fn loop_zero_iterations_domtree() {
     assert_eq!(domtree.idom(&Name::from(18)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(18));
 
-    let postdomtree = analysis.postdominator_tree("loop_zero_iterations");
+    let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(18))));
     assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(8))));
     assert_eq!(postdomtree.ipostdom(&Name::from(8)), Some(CFGNode::Block(&Name::from(18))));
@@ -472,6 +475,7 @@ fn loop_with_cond_domtree() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("loop_with_cond");
 
     // CFG:
     //   1
@@ -486,7 +490,7 @@ fn loop_with_cond_domtree() {
     //   |
     //  20
 
-    let domtree = analysis.dominator_tree("loop_with_cond");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(6)));
@@ -495,7 +499,7 @@ fn loop_with_cond_domtree() {
     assert_eq!(domtree.idom(&Name::from(20)), Some(&Name::from(16)));
     assert_eq!(domtree.idom_of_return(), &Name::from(20));
 
-    let postdomtree = analysis.postdominator_tree("loop_with_cond");
+    let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
     assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Block(&Name::from(16))));
     assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(16))));
@@ -510,6 +514,7 @@ fn loop_inside_cond_domtree() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("loop_inside_cond");
 
     // CFG:
     //      1      _
@@ -518,14 +523,14 @@ fn loop_inside_cond_domtree() {
     //    \   /
     //     12
 
-    let domtree = analysis.dominator_tree("loop_inside_cond");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(12));
 
-    let postdomtree = analysis.postdominator_tree("loop_inside_cond");
+    let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(12))));
     assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(12))));
     assert_eq!(postdomtree.ipostdom(&Name::from(11)), Some(CFGNode::Block(&Name::from(12))));
@@ -538,6 +543,7 @@ fn search_array_domtree() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("search_array");
 
     // CFG:
     //      1   _
@@ -550,7 +556,7 @@ fn search_array_domtree() {
     //    \  /
     //     21
 
-    let domtree = analysis.dominator_tree("search_array");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(4)));
@@ -559,7 +565,7 @@ fn search_array_domtree() {
     assert_eq!(domtree.idom(&Name::from(21)), Some(&Name::from(11)));
     assert_eq!(domtree.idom_of_return(), &Name::from(21));
 
-    let postdomtree = analysis.postdominator_tree("search_array");
+    let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(4))));
     assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(11))));
     assert_eq!(postdomtree.ipostdom(&Name::from(11)), Some(CFGNode::Block(&Name::from(21))));
@@ -574,6 +580,7 @@ fn nested_loop_domtree() {
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("nested_loop");
 
     // CFG:
     //  1
@@ -587,7 +594,7 @@ fn nested_loop_domtree() {
     //  | /
     //  7
 
-    let domtree = analysis.dominator_tree("nested_loop");
+    let domtree = fn_analysis.dominator_tree();
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(13)));
@@ -595,7 +602,7 @@ fn nested_loop_domtree() {
     assert_eq!(domtree.idom(&Name::from(7)), Some(&Name::from(1)));
     assert_eq!(domtree.idom_of_return(), &Name::from(7));
 
-    let postdomtree = analysis.postdominator_tree("nested_loop");
+    let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(7))));
     assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(13))));
     assert_eq!(postdomtree.ipostdom(&Name::from(7)), Some(CFGNode::Return));
@@ -620,7 +627,7 @@ fn while_loop_cdg() {
     //  |
     //  12
 
-    let cdg = analysis.control_dependence_graph("while_loop");
+    let cdg = analysis.fn_analysis("while_loop").control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(6)]);
@@ -650,7 +657,7 @@ fn for_loop_cdg() {
     //  | /
     //  6
 
-    let cdg = analysis.control_dependence_graph("for_loop");
+    let cdg = analysis.fn_analysis("for_loop").control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).count(), 0);
@@ -679,7 +686,7 @@ fn loop_zero_iterations_cdg() {
     //   | /
     //  18
 
-    let cdg = analysis.control_dependence_graph("loop_zero_iterations");
+    let cdg = analysis.fn_analysis("loop_zero_iterations").control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).collect::<Vec<_>>(), vec![&Name::from(1)]);
@@ -714,7 +721,7 @@ fn loop_with_cond_cdg() {
     //   |
     //  20
 
-    let cdg = analysis.control_dependence_graph("loop_with_cond");
+    let cdg = analysis.fn_analysis("loop_with_cond").control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(16)]);
@@ -751,7 +758,7 @@ fn loop_inside_cond_cdg() {
     //    \   /
     //     12
 
-    let cdg = analysis.control_dependence_graph("loop_inside_cond");
+    let cdg = analysis.fn_analysis("loop_inside_cond").control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(5)]);
@@ -782,7 +789,7 @@ fn search_array_cdg() {
     //    \  /
     //     21
 
-    let cdg = analysis.control_dependence_graph("search_array");
+    let cdg = analysis.fn_analysis("search_array").control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(4)).collect::<Vec<_>>(), vec![&Name::from(4)]);
@@ -818,7 +825,7 @@ fn nested_loop_cdg() {
     //  | /
     //  7
 
-    let cdg = analysis.control_dependence_graph("nested_loop");
+    let cdg = analysis.fn_analysis("nested_loop").control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);

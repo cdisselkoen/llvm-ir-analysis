@@ -19,7 +19,6 @@ use llvm_ir::{Function, Module};
 use log::debug;
 use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
-use std::hash::Hash;
 
 /// Computes (and caches the results of) various analyses on a given `Module` or set of `Module`s.
 pub struct Analysis<'m> {
@@ -29,14 +28,8 @@ pub struct Analysis<'m> {
     call_graph: SimpleCache<CallGraph<'m>>,
     /// `FunctionsByType`, which allows you to iterate over functions by type
     functions_by_type: SimpleCache<FunctionsByType<'m>>,
-    /// Map from function name to the `ControlFlowGraph` for that function
-    control_flow_graphs: MappingCache<&'m str, ControlFlowGraph<'m>>,
-    /// Map from function name to the `DominatorTree` for that function
-    dominator_trees: MappingCache<&'m str, DominatorTree<'m>>,
-    /// Map from function name to the `PostDominatorTree` for that function
-    postdominator_trees: MappingCache<&'m str, PostDominatorTree<'m>>,
-    /// Map from function name to the `ControlDependenceGraph` for that function
-    control_dep_graphs: MappingCache<&'m str, ControlDependenceGraph<'m>>,
+    /// Map from function name to the `FunctionAnalysis` for that function
+    fn_analyses: HashMap<&'m str, FunctionAnalysis<'m>>,
 }
 
 impl<'m> Analysis<'m> {
@@ -45,15 +38,7 @@ impl<'m> Analysis<'m> {
     /// This method itself is cheap; individual analyses will be computed lazily
     /// on demand.
     pub fn new(module: &'m Module) -> Self {
-        Self {
-            modules: vec![module],
-            call_graph: SimpleCache::new(),
-            functions_by_type: SimpleCache::new(),
-            control_flow_graphs: MappingCache::new(),
-            dominator_trees: MappingCache::new(),
-            postdominator_trees: MappingCache::new(),
-            control_dep_graphs: MappingCache::new(),
-        }
+        Self::new_multi_module(std::iter::once(module))
     }
 
     /// Create a new `Analysis` for the given set of `Module`s.
@@ -61,20 +46,30 @@ impl<'m> Analysis<'m> {
     /// This method itself is cheap; individual analyses will be computed lazily
     /// on demand.
     pub fn new_multi_module(modules: impl IntoIterator<Item = &'m Module>) -> Self {
+        let modules: Vec<&'m Module> = modules.into_iter().collect();
+        let fn_analyses = modules
+            .iter()
+            .copied()
+            .map(|m| m.functions.iter())
+            .flatten()
+            .map(|f| (f.name.as_str(), FunctionAnalysis::new(f)))
+            .collect();
         Self {
-            modules: modules.into_iter().collect(),
+            modules,
             call_graph: SimpleCache::new(),
             functions_by_type: SimpleCache::new(),
-            control_flow_graphs: MappingCache::new(),
-            dominator_trees: MappingCache::new(),
-            postdominator_trees: MappingCache::new(),
-            control_dep_graphs: MappingCache::new(),
+            fn_analyses,
         }
     }
 
     /// Iterate over the analyzed `Module`(s).
-    fn modules<'s>(&'s self) -> impl Iterator<Item = &'m Module> + 's {
+    pub fn modules<'s>(&'s self) -> impl Iterator<Item = &'m Module> + 's {
         self.modules.iter().copied()
+    }
+
+    /// Iterate over all the `Function`s in the analyzed `Module`(s).
+    pub fn functions<'s>(&'s self) -> impl Iterator<Item = &'m Function> + 's {
+        self.modules().map(|m| m.functions.iter()).flatten()
     }
 
     /// Get the `CallGraph` for the `Module`(s).
@@ -94,54 +89,13 @@ impl<'m> Analysis<'m> {
         })
     }
 
-    /// Get the `ControlFlowGraph` for the function with the given name.
+    /// Get the `FunctionAnalysis` for the function with the given name.
     ///
     /// Panics if no function of that name exists in the `Module`(s)
     /// which the `Analysis` was created with.
-    pub fn control_flow_graph(&self, func_name: &'m str) -> Ref<ControlFlowGraph<'m>> {
-        self.control_flow_graphs.get_or_insert_with(&func_name, || {
-            let (func, _) = self.get_func_by_name(func_name)
-                .unwrap_or_else(|| panic!("Function named {:?} not found in the Module(s)", func_name));
-            debug!("computing control flow graph for {}", func_name);
-            ControlFlowGraph::new(func)
-        })
-    }
-
-    /// Get the `DominatorTree` for the function with the given name.
-    ///
-    /// Panics if no function of that name exists in the `Module`(s)
-    /// which the `Analysis` was created with.
-    pub fn dominator_tree(&self, func_name: &'m str) -> Ref<DominatorTree<'m>> {
-        self.dominator_trees.get_or_insert_with(&func_name, || {
-            let cfg = self.control_flow_graph(func_name);
-            debug!("computing dominator tree for {}", func_name);
-            DominatorTree::new(&cfg)
-        })
-    }
-
-    /// Get the `PostDominatorTree` for the function with the given name.
-    ///
-    /// Panics if no function of that name exists in the `Module`(s)
-    /// which the `Analysis` was created with.
-    pub fn postdominator_tree(&self, func_name: &'m str) -> Ref<PostDominatorTree<'m>> {
-        self.postdominator_trees.get_or_insert_with(&func_name, || {
-            let cfg = self.control_flow_graph(func_name);
-            debug!("computing postdominator tree for {}", func_name);
-            PostDominatorTree::new(&cfg)
-        })
-    }
-
-    /// Get the `ControlDependenceGraph` for the function with the given name.
-    ///
-    /// Panics if no function of that name exists in the `Module`(s)
-    /// which the `Analysis` was created with.
-    pub fn control_dependence_graph(&self, func_name: &'m str) -> Ref<ControlDependenceGraph<'m>> {
-        self.control_dep_graphs.get_or_insert_with(&func_name, || {
-            let cfg = self.control_flow_graph(func_name);
-            let postdomtree = self.postdominator_tree(func_name);
-            debug!("computing control dependence graph for {}", func_name);
-            ControlDependenceGraph::new(&cfg, &postdomtree)
-        })
+    pub fn fn_analysis<'s>(&'s self, func_name: &str) -> &'s FunctionAnalysis<'m> {
+        self.fn_analyses.get(func_name)
+            .unwrap_or_else(|| panic!("Function named {:?} not found in the Module(s)", func_name))
     }
 
     /// Get the `Function` with the given name from the analyzed `Module`(s).
@@ -159,6 +113,72 @@ impl<'m> Analysis<'m> {
             }
         }
         retval
+    }
+}
+
+/// Computes (and caches the results of) various analyses on a given `Function`
+pub struct FunctionAnalysis<'m> {
+    /// Reference to the `llvm-ir` `Function`
+    function: &'m Function,
+    /// Control flow graph for the function
+    control_flow_graph: SimpleCache<ControlFlowGraph<'m>>,
+    /// Dominator tree for the function
+    dominator_tree: SimpleCache<DominatorTree<'m>>,
+    /// Postdominator tree for the function
+    postdominator_tree: SimpleCache<PostDominatorTree<'m>>,
+    /// Control dependence graph for the function
+    control_dep_graph: SimpleCache<ControlDependenceGraph<'m>>,
+}
+
+impl<'m> FunctionAnalysis<'m> {
+    /// Create a new `FunctionAnalysis` for the given `Function`.
+    ///
+    /// This method itself is cheap; individual analyses will be computed lazily
+    /// on demand.
+    pub fn new(function: &'m Function) -> Self {
+        Self {
+            function,
+            control_flow_graph: SimpleCache::new(),
+            dominator_tree: SimpleCache::new(),
+            postdominator_tree: SimpleCache::new(),
+            control_dep_graph: SimpleCache::new(),
+        }
+    }
+
+    /// Get the `ControlFlowGraph` for the function.
+    pub fn control_flow_graph(&self) -> Ref<ControlFlowGraph<'m>> {
+        self.control_flow_graph.get_or_insert_with(|| {
+            debug!("computing control flow graph for {}", &self.function.name);
+            ControlFlowGraph::new(self.function)
+        })
+    }
+
+    /// Get the `DominatorTree` for the function.
+    pub fn dominator_tree(&self) -> Ref<DominatorTree<'m>> {
+        self.dominator_tree.get_or_insert_with(|| {
+            let cfg = self.control_flow_graph();
+            debug!("computing dominator tree for {}", &self.function.name);
+            DominatorTree::new(&cfg)
+        })
+    }
+
+    /// Get the `PostDominatorTree` for the function.
+    pub fn postdominator_tree(&self) -> Ref<PostDominatorTree<'m>> {
+        self.postdominator_tree.get_or_insert_with(|| {
+            let cfg = self.control_flow_graph();
+            debug!("computing postdominator tree for {}", &self.function.name);
+            PostDominatorTree::new(&cfg)
+        })
+    }
+
+    /// Get the `ControlDependenceGraph` for the function.
+    pub fn control_dependence_graph(&self) -> Ref<ControlDependenceGraph<'m>> {
+        self.control_dep_graph.get_or_insert_with(|| {
+            let cfg = self.control_flow_graph();
+            let postdomtree = self.postdominator_tree();
+            debug!("computing control dependence graph for {}", &self.function.name);
+            ControlDependenceGraph::new(&cfg, &postdomtree)
+        })
     }
 }
 
@@ -189,39 +209,6 @@ impl<T> SimpleCache<T> {
         // mutably in the future.
         Ref::map(self.data.borrow(), |o| {
             o.as_ref().expect("should be populated now")
-        })
-    }
-}
-
-struct MappingCache<K, V> {
-    /// The hashmap starts empty and is populated on demand
-    map: RefCell<HashMap<K, V>>,
-}
-
-impl<K: Eq + Hash + Clone, V> MappingCache<K, V> {
-    fn new() -> Self {
-        Self {
-            map: RefCell::new(HashMap::new()),
-        }
-    }
-
-    /// Get the cached value for the given key, or if no value is cached for that
-    /// key, compute the value using the given closure, then cache that result
-    /// and return it
-    fn get_or_insert_with(&self, key: &K, f: impl FnOnce() -> V) -> Ref<V> {
-        // borrow mutably only if the entry is missing.
-        // else don't even try to borrow mutably
-        let need_mutable_borrow = !self.map.borrow().contains_key(key);
-        if need_mutable_borrow {
-            let old_val = self.map.borrow_mut().insert(key.clone(), f());
-            debug_assert!(old_val.is_none());
-        }
-        // now, either way, the entry is populated, so we borrow immutably and
-        // return. future users can also borrow immutably using this function
-        // (even while this borrow is still outstanding), since it won't try to
-        // borrow mutably in the future.
-        Ref::map(self.map.borrow(), |map| {
-            map.get(&key).expect("should be populated now")
         })
     }
 }

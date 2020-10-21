@@ -177,7 +177,7 @@ fn trivial_cfgs() {
         "int64t",
         "mixed_bitwidths",
     ] {
-        let cfg = analysis.control_flow_graph(func_name);
+        let cfg = analysis.fn_analysis(func_name).control_flow_graph();
         let entry = cfg.entry();
         assert_eq!(cfg.preds(entry).count(), 0);
         let succs = cfg.succs(entry).collect::<Vec<_>>();
@@ -191,7 +191,7 @@ fn conditional_true_cfg() {
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("conditional_true");
+    let cfg = analysis.fn_analysis("conditional_true").control_flow_graph();
 
     // CFG:
     //     2
@@ -236,7 +236,7 @@ fn conditional_false_cfg() {
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("conditional_false");
+    let cfg = analysis.fn_analysis("conditional_false").control_flow_graph();
 
     // CFG:
     //     2
@@ -281,7 +281,7 @@ fn conditional_nozero_cfg() {
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("conditional_nozero");
+    let cfg = analysis.fn_analysis("conditional_nozero").control_flow_graph();
 
     // CFG:
     //  2
@@ -353,7 +353,7 @@ fn has_switch_cfg() {
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = Analysis::new(&module);
-    let cfg = analysis.control_flow_graph("has_switch");
+    let cfg = analysis.fn_analysis("has_switch").control_flow_graph();
 
     // CFG:
     //           2
@@ -465,7 +465,7 @@ fn trivial_domtrees() {
         "int64t",
         "mixed_bitwidths",
     ] {
-        let domtree = analysis.dominator_tree(func_name);
+        let domtree = analysis.fn_analysis(func_name).dominator_tree();
         let entry = domtree.entry();
         assert_eq!(domtree.idom(entry), None);
         assert_eq!(domtree.children(entry).collect::<Vec<_>>(), vec![CFGNode::Return]);
@@ -478,7 +478,7 @@ fn trivial_domtrees() {
         assert_eq!(domtree.strictly_dominates(CFGNode::Return, CFGNode::Block(entry)), false);
         assert_eq!(domtree.strictly_dominates(CFGNode::Return, CFGNode::Return), false);
 
-        let postdomtree = analysis.postdominator_tree(func_name);
+        let postdomtree = analysis.fn_analysis(func_name).postdominator_tree();
         assert_eq!(postdomtree.ipostdom(entry), Some(CFGNode::Return));
         assert_eq!(postdomtree.children(entry).count(), 0);
         assert_eq!(postdomtree.postdominates(CFGNode::Block(entry), CFGNode::Block(entry)), true);
@@ -515,7 +515,7 @@ fn conditional_true_domtree() {
     let bb12_name = Name::from(12);
     let bb12_node = CFGNode::Block(&bb12_name);
 
-    let domtree = analysis.dominator_tree("conditional_true");
+    let domtree = analysis.fn_analysis("conditional_true").dominator_tree();
 
     assert_eq!(domtree.idom(&bb2_name), None);
     let children: Vec<CFGNode> = domtree.children(&bb2_name).sorted().collect();
@@ -539,7 +539,7 @@ fn conditional_true_domtree() {
     assert_eq!(domtree.dominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb12_name)), false);
     assert_eq!(domtree.dominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)), false);
 
-    let postdomtree = analysis.postdominator_tree("conditional_true");
+    let postdomtree = analysis.fn_analysis("conditional_true").postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&bb2_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb4_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb8_name), Some(bb12_node));
@@ -573,7 +573,7 @@ fn conditional_false_domtree() {
     let bb12_name = Name::from(12);
     let bb12_node = CFGNode::Block(&bb12_name);
 
-    let domtree = analysis.dominator_tree("conditional_false");
+    let domtree = analysis.fn_analysis("conditional_false").dominator_tree();
 
     assert_eq!(domtree.idom(&bb2_name), None);
     let children: Vec<CFGNode> = domtree.children(&bb2_name).sorted().collect();
@@ -597,7 +597,7 @@ fn conditional_false_domtree() {
     assert_eq!(domtree.dominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb12_name)), false);
     assert_eq!(domtree.dominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)), false);
 
-    let postdomtree = analysis.postdominator_tree("conditional_false");
+    let postdomtree = analysis.fn_analysis("conditional_false").postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&bb2_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb4_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb8_name), Some(bb12_node));
@@ -628,7 +628,7 @@ fn conditional_nozero_domtree() {
     //   \ | / /
     //     14
 
-    let domtree = analysis.dominator_tree("conditional_nozero");
+    let domtree = analysis.fn_analysis("conditional_nozero").dominator_tree();
     assert_eq!(domtree.idom(&Name::from(2)), None);
     assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(2)));
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(4)));
@@ -645,7 +645,7 @@ fn conditional_nozero_domtree() {
     assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(4)), CFGNode::Block(&Name::from(14))), false);
     assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(14)), CFGNode::Block(&Name::from(2))), false);
 
-    let postdomtree = analysis.postdominator_tree("conditional_nozero");
+    let postdomtree = analysis.fn_analysis("conditional_nozero").postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(2)), Some(CFGNode::Block(&Name::from(14))));
     assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(14))));
     assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Block(&Name::from(14))));
@@ -683,7 +683,7 @@ fn has_switch_domtree() {
     //           |
     //           14
 
-    let domtree = analysis.dominator_tree("has_switch");
+    let domtree = analysis.fn_analysis("has_switch").dominator_tree();
     assert_eq!(domtree.idom(&Name::from(2)), None);
     assert_eq!(domtree.idom(&Name::from(4)), Some(&Name::from(2)));
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(2)));
@@ -693,7 +693,7 @@ fn has_switch_domtree() {
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(2)));
     assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
 
-    let postdomtree = analysis.postdominator_tree("has_switch");
+    let postdomtree = analysis.fn_analysis("has_switch").postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(2)), Some(CFGNode::Block(&Name::from(14))));
     assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(14))));
     assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(14))));
@@ -727,7 +727,7 @@ fn trivial_control_deps() {
         "int64t",
         "mixed_bitwidths",
     ] {
-        let cdg = analysis.control_dependence_graph(func_name);
+        let cdg = analysis.fn_analysis(func_name).control_dependence_graph();
         let entry = cdg.entry();
         assert_eq!(cdg.get_control_dependencies(entry).count(), 0);
         assert_eq!(cdg.get_control_dependents(entry).count(), 0);
@@ -753,7 +753,7 @@ fn conditional_true_cdg() {
     let bb8_name = Name::from(8);
     let bb12_name = Name::from(12);
 
-    let cdg = analysis.control_dependence_graph("conditional_true");
+    let cdg = analysis.fn_analysis("conditional_true").control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());
@@ -799,7 +799,7 @@ fn conditional_false_cdg() {
     let bb8_name = Name::from(8);
     let bb12_name = Name::from(12);
 
-    let cdg = analysis.control_dependence_graph("conditional_false");
+    let cdg = analysis.fn_analysis("conditional_false").control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());
@@ -854,7 +854,7 @@ fn conditional_nozero_cdg() {
     let bb12_name = Name::from(12);
     let bb14_name = Name::from(14);
 
-    let cdg = analysis.control_dependence_graph("conditional_nozero");
+    let cdg = analysis.fn_analysis("conditional_nozero").control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());
@@ -941,7 +941,7 @@ fn has_switch_cdg() {
     let bb12_name = Name::from(12);
     let bb14_name = Name::from(14);
 
-    let cdg = analysis.control_dependence_graph("has_switch");
+    let cdg = analysis.fn_analysis("has_switch").control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());

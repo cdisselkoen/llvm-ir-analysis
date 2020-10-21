@@ -36,9 +36,15 @@ Then, you can construct an [`Analysis`] object:
 let module = Module::from_bc_path(...)?;
 let analysis = Analysis::new(&module);
 ```
-and you can get, e.g., the call graph via `analysis.call_graph()`.
+
+You can get `Module`-wide analyses such as `analysis.call_graph()`
+directly from the `Analysis` object.
+You can also get `Function`-level analyses such as the control-flow
+graph using `analysis.fn_analysis("my_func")`; or you can construct
+a [`FunctionAnalysis`] directly with `FunctionAnalysis::new()`.
 
 [`llvm-ir`]: https://crates.io/crates/llvm-ir
 [`llvm-sys`]: https://crates.io/crates/llvm-sys
 [`Module`]: https://docs.rs/llvm-ir/0.7.3/llvm_ir/module/struct.Module.html
 [`Analysis`]: https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.Analysis.html
+[`FunctionAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.FunctionAnalysis.html
