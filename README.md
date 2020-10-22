@@ -54,6 +54,7 @@ lazily on demand.
 [`llvm-ir`]: https://crates.io/crates/llvm-ir
 [`llvm-sys`]: https://crates.io/crates/llvm-sys
 [`Module`]: https://docs.rs/llvm-ir/0.7.3/llvm_ir/module/struct.Module.html
+[`Function`]: https://docs.rs/llvm-ir/0.7.3/llvm_ir/function/struct.Function.html
 [`ModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.ModuleAnalysis.html
 [`FunctionAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.FunctionAnalysis.html
 [`CrossModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.CrossModuleAnalysis.html
