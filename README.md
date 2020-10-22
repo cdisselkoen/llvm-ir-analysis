@@ -3,12 +3,12 @@
 This crate provides several simple static analyses of LLVM IR.
 In particular, this crate computes the following on an [`llvm-ir`] `Module` or `Function`:
 
-- [`CallGraph`](https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.CallGraph.html)
-- [`ControlFlowGraph`](https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.ControlFlowGraph.html)
-- [`DominatorTree`](https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.DominatorTree.html)
-- [`PostDominatorTree`](https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.PostDominatorTree.html)
-- [`ControlDependenceGraph`](https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.ControlDependenceGraph.html)
-- [`FunctionsByType`](https://docs.rs/llvm-ir-analysis/0.1.0/llvm_ir_analysis/struct.FunctionsByType.html)
+- [`CallGraph`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.CallGraph.html)
+- [`ControlFlowGraph`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.ControlFlowGraph.html)
+- [`DominatorTree`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.DominatorTree.html)
+- [`PostDominatorTree`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.PostDominatorTree.html)
+- [`ControlDependenceGraph`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.ControlDependenceGraph.html)
+- [`FunctionsByType`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.FunctionsByType.html)
 
 The above analyses are provided by the [`FunctionAnalysis`],
 [`ModuleAnalysis`], and [`CrossModuleAnalysis`] objects, which lazily compute
@@ -21,10 +21,10 @@ so you can simply add it as a dependency in your `Cargo.toml`, selecting the
 feature corresponding to the LLVM version you want:
 ```toml
 [dependencies]
-llvm-ir-analysis = { version = "0.1.0", features = ["llvm-10"] }
+llvm-ir-analysis = { version = "0.2.0", features = ["llvm-11"] }
 ```
-As of 0.1.0, the supported LLVM versions are `llvm-8`, `llvm-9`, and
-`llvm-10`; the current Git `master` also supports `llvm-11`.
+Currently, the supported LLVM versions are `llvm-8`, `llvm-9`, `llvm-10`, and
+`llvm-11`.
 The corresponding LLVM library must be available on your system; see the
 [`llvm-sys`] README for more details and instructions.
 
