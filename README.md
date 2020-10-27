@@ -3,12 +3,12 @@
 This crate provides several simple static analyses of LLVM IR.
 In particular, this crate computes the following on an [`llvm-ir`] `Module` or `Function`:
 
-- [`CallGraph`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.CallGraph.html)
-- [`ControlFlowGraph`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.ControlFlowGraph.html)
-- [`DominatorTree`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.DominatorTree.html)
-- [`PostDominatorTree`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.PostDominatorTree.html)
-- [`ControlDependenceGraph`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.ControlDependenceGraph.html)
-- [`FunctionsByType`](https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.FunctionsByType.html)
+- [`CallGraph`](https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.CallGraph.html)
+- [`ControlFlowGraph`](https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.ControlFlowGraph.html)
+- [`DominatorTree`](https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.DominatorTree.html)
+- [`PostDominatorTree`](https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.PostDominatorTree.html)
+- [`ControlDependenceGraph`](https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.ControlDependenceGraph.html)
+- [`FunctionsByType`](https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.FunctionsByType.html)
 
 The above analyses are provided by the [`FunctionAnalysis`],
 [`ModuleAnalysis`], and [`CrossModuleAnalysis`] objects, which lazily compute
@@ -21,7 +21,7 @@ so you can simply add it as a dependency in your `Cargo.toml`, selecting the
 feature corresponding to the LLVM version you want:
 ```toml
 [dependencies]
-llvm-ir-analysis = { version = "0.2.0", features = ["llvm-11"] }
+llvm-ir-analysis = { version = "0.2.1", features = ["llvm-11"] }
 ```
 Currently, the supported LLVM versions are `llvm-8`, `llvm-9`, `llvm-10`, and
 `llvm-11`.
@@ -53,8 +53,8 @@ lazily on demand.
 
 [`llvm-ir`]: https://crates.io/crates/llvm-ir
 [`llvm-sys`]: https://crates.io/crates/llvm-sys
-[`Module`]: https://docs.rs/llvm-ir/0.7.3/llvm_ir/module/struct.Module.html
-[`Function`]: https://docs.rs/llvm-ir/0.7.3/llvm_ir/function/struct.Function.html
-[`ModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.ModuleAnalysis.html
-[`FunctionAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.FunctionAnalysis.html
-[`CrossModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.0/llvm_ir_analysis/struct.CrossModuleAnalysis.html
+[`Module`]: https://docs.rs/llvm-ir/0.7.4/llvm_ir/module/struct.Module.html
+[`Function`]: https://docs.rs/llvm-ir/0.7.4/llvm_ir/function/struct.Function.html
+[`ModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.ModuleAnalysis.html
+[`FunctionAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.FunctionAnalysis.html
+[`CrossModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.2.1/llvm_ir_analysis/struct.CrossModuleAnalysis.html
