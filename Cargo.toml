@@ -1,6 +1,6 @@
 [package]
 name = "llvm-ir-analysis"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Craig Disselkoen <craigdissel@gmail.com>"]
 edition = "2018"
 description = "Static analysis on LLVM IR"
