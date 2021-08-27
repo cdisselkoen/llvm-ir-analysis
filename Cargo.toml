@@ -13,14 +13,14 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-either = "1.5.3"
-llvm-ir = "0.7.4"
+either = "1.6"
+llvm-ir = "0.8.0"
 log = "0.4.8"
 petgraph = { version = "0.5.1", default-features = false, features = ["graphmap"] }
 
 [dev-dependencies]
-env_logger = "0.7.1"
-itertools = "0.9"
+env_logger = "0.8"
+itertools = "0.10"
 
 [features]
 # Select the LLVM version to be compatible with.
@@ -29,6 +29,7 @@ llvm-8 = ["llvm-ir/llvm-8"]
 llvm-9 = ["llvm-ir/llvm-9"]
 llvm-10 = ["llvm-ir/llvm-10"]
 llvm-11 = ["llvm-ir/llvm-11"]
+llvm-12 = ["llvm-ir/llvm-12"]
 
 # These features select the corresponding LLVM version, and require an exact
 # match between the system LLVM version and the LLVM version chosen here. For
@@ -37,6 +38,7 @@ llvm-8-strict = ["llvm-8", "llvm-ir/llvm-8-strict"]
 llvm-9-strict = ["llvm-9", "llvm-ir/llvm-9-strict"]
 llvm-10-strict = ["llvm-10", "llvm-ir/llvm-10-strict"]
 llvm-11-strict = ["llvm-11", "llvm-ir/llvm-11-strict"]
+llvm-12-strict = ["llvm-12", "llvm-ir/llvm-12-strict"]
 
 [package.metadata.docs.rs]
 # Generate docs.rs documentation with the llvm-10 feature
