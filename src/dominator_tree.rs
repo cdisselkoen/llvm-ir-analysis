@@ -176,7 +176,7 @@ impl<'m> DominatorTree<'m> {
         let mut parents = self.graph.neighbors_directed(CFGNode::Block(block), Direction::Incoming);
         let idom = parents.next()?;
         if let Some(_) = parents.next() {
-            panic!("Block {:?} should have only one immediate dominator");
+            panic!("Block {:?} should have only one immediate dominator", block);
         }
         match idom {
             CFGNode::Block(block) => Some(block),
