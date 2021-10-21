@@ -23,8 +23,9 @@ feature corresponding to the LLVM version you want:
 [dependencies]
 llvm-ir-analysis = { version = "0.3.0", features = ["llvm-12"] }
 ```
-Currently, the supported LLVM versions are `llvm-8`, `llvm-9`, `llvm-10`,
-`llvm-11`, and `llvm-12`.
+The latest crates.io release (0.3.0) supports LLVM versions `llvm-8`, `llvm-9`,
+`llvm-10`, `llvm-11`, and `llvm-12`; the Git version you're looking at
+also supports `llvm-13`.
 The corresponding LLVM library must be available on your system; see the
 [`llvm-sys`] README for more details and instructions.
 
@@ -53,8 +54,8 @@ lazily on demand.
 
 [`llvm-ir`]: https://crates.io/crates/llvm-ir
 [`llvm-sys`]: https://crates.io/crates/llvm-sys
-[`Module`]: https://docs.rs/llvm-ir/0.7.4/llvm_ir/module/struct.Module.html
-[`Function`]: https://docs.rs/llvm-ir/0.7.4/llvm_ir/function/struct.Function.html
+[`Module`]: https://docs.rs/llvm-ir/0.8.1/llvm_ir/module/struct.Module.html
+[`Function`]: https://docs.rs/llvm-ir/0.8.1/llvm_ir/function/struct.Function.html
 [`ModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.3.0/llvm_ir_analysis/struct.ModuleAnalysis.html
 [`FunctionAnalysis`]: https://docs.rs/llvm-ir-analysis/0.3.0/llvm_ir_analysis/struct.FunctionAnalysis.html
 [`CrossModuleAnalysis`]: https://docs.rs/llvm-ir-analysis/0.3.0/llvm_ir_analysis/struct.CrossModuleAnalysis.html
