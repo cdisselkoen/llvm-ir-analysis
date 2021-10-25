@@ -1,5 +1,8 @@
 # `llvm-ir-analysis`: Static analysis of LLVM IR
 
+[![crates.io](https://img.shields.io/crates/v/llvm-ir-analysis.svg)](https://crates.io/crates/llvm-ir-analysis)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/cdisselkoen/llvm-ir-analysis/main/LICENSE)
+
 This crate provides several simple static analyses of LLVM IR.
 In particular, this crate computes the following on an [`llvm-ir`] `Module` or `Function`:
 
