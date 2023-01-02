@@ -87,3 +87,8 @@ int nested_loop(int end) {
   }
   return a - 30;
 }
+
+int infinite_loop() {
+  while(1) {};
+  return 1;
+}

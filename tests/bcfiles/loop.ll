@@ -1,7 +1,7 @@
 ; ModuleID = 'loop.c'
 source_filename = "loop.c"
 target datalayout = "e-m:o-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-apple-macosx10.15.0"
+target triple = "x86_64-apple-macosx10.17.0"
 
 ; Function Attrs: nounwind ssp uwtable
 define i32 @while_loop(i32) local_unnamed_addr #0 {
@@ -178,13 +178,13 @@ define i32 @loop_inside_cond(i32) local_unnamed_addr #0 {
 define i32 @loop_over_array(i32) local_unnamed_addr #0 {
   %2 = alloca [10 x i32], align 16
   %3 = bitcast [10 x i32]* %2 to i8*
-  call void @llvm.lifetime.start.p0i8(i64 40, i8* nonnull %3) #2
+  call void @llvm.lifetime.start.p0i8(i64 40, i8* nonnull %3) #3
   br label %7
 
 4:                                                ; preds = %7
   %5 = getelementptr inbounds [10 x i32], [10 x i32]* %2, i64 0, i64 3
   %6 = load volatile i32, i32* %5, align 4, !tbaa !3
-  call void @llvm.lifetime.end.p0i8(i64 40, i8* nonnull %3) #2
+  call void @llvm.lifetime.end.p0i8(i64 40, i8* nonnull %3) #3
   ret i32 %6
 
 7:                                                ; preds = %7, %1
@@ -202,7 +202,7 @@ define i32 @loop_over_array(i32) local_unnamed_addr #0 {
 define i32 @sum_of_array(i32) local_unnamed_addr #0 {
   %2 = alloca [10 x i32], align 16
   %3 = bitcast [10 x i32]* %2 to i8*
-  call void @llvm.lifetime.start.p0i8(i64 40, i8* nonnull %3) #2
+  call void @llvm.lifetime.start.p0i8(i64 40, i8* nonnull %3) #3
   br label %4
 
 4:                                                ; preds = %4, %1
@@ -215,7 +215,7 @@ define i32 @sum_of_array(i32) local_unnamed_addr #0 {
 
 9:                                                ; preds = %11
   %10 = add nsw i32 %16, -30
-  call void @llvm.lifetime.end.p0i8(i64 40, i8* nonnull %3) #2
+  call void @llvm.lifetime.end.p0i8(i64 40, i8* nonnull %3) #3
   ret i32 %10
 
 11:                                               ; preds = %4, %11
@@ -233,7 +233,7 @@ define i32 @sum_of_array(i32) local_unnamed_addr #0 {
 define i32 @search_array(i32) local_unnamed_addr #0 {
   %2 = alloca [10 x i32], align 16
   %3 = bitcast [10 x i32]* %2 to i8*
-  call void @llvm.lifetime.start.p0i8(i64 40, i8* nonnull %3) #2
+  call void @llvm.lifetime.start.p0i8(i64 40, i8* nonnull %3) #3
   br label %4
 
 4:                                                ; preds = %4, %1
@@ -265,7 +265,7 @@ define i32 @search_array(i32) local_unnamed_addr #0 {
 21:                                               ; preds = %16, %19
   %22 = phi i32 [ %20, %19 ], [ 0, %16 ]
   %23 = sub nsw i32 %0, %22
-  call void @llvm.lifetime.end.p0i8(i64 40, i8* nonnull %3) #2
+  call void @llvm.lifetime.end.p0i8(i64 40, i8* nonnull %3) #3
   ret i32 %23
 }
 
@@ -303,9 +303,18 @@ define i32 @nested_loop(i32) local_unnamed_addr #0 {
   br i1 %18, label %10, label %13
 }
 
+; Function Attrs: norecurse noreturn nounwind readnone ssp uwtable
+define i32 @infinite_loop() local_unnamed_addr #2 {
+  br label %1
+
+1:                                                ; preds = %0, %1
+  br label %1
+}
+
 attributes #0 = { nounwind ssp uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="penryn" "target-features"="+cx16,+cx8,+fxsr,+mmx,+sahf,+sse,+sse2,+sse3,+sse4.1,+ssse3,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { argmemonly nounwind }
-attributes #2 = { nounwind }
+attributes #2 = { norecurse noreturn nounwind readnone ssp uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="penryn" "target-features"="+cx16,+cx8,+fxsr,+mmx,+sahf,+sse,+sse2,+sse3,+sse4.1,+ssse3,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.ident = !{!2}

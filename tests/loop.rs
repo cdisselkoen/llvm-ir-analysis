@@ -399,7 +399,7 @@ fn while_loop_domtree() {
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(6)));
-    assert_eq!(domtree.idom_of_return(), &Name::from(12));
+    assert_eq!(domtree.idom_of_return(), Some(&Name::from(12)));
 
     let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
@@ -426,7 +426,7 @@ fn for_loop_domtree() {
     assert_eq!(domtree.idom(&Name::from(1)), None);
     assert_eq!(domtree.idom(&Name::from(6)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(9)), Some(&Name::from(1)));
-    assert_eq!(domtree.idom_of_return(), &Name::from(6));
+    assert_eq!(domtree.idom_of_return(), Some(&Name::from(6)));
 
     let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
@@ -459,7 +459,7 @@ fn loop_zero_iterations_domtree() {
     assert_eq!(domtree.idom(&Name::from(8)), Some(&Name::from(5)));
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(5)));
     assert_eq!(domtree.idom(&Name::from(18)), Some(&Name::from(1)));
-    assert_eq!(domtree.idom_of_return(), &Name::from(18));
+    assert_eq!(domtree.idom_of_return(), Some(&Name::from(18)));
 
     let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(18))));
@@ -497,7 +497,7 @@ fn loop_with_cond_domtree() {
     assert_eq!(domtree.idom(&Name::from(13)), Some(&Name::from(6)));
     assert_eq!(domtree.idom(&Name::from(16)), Some(&Name::from(6)));
     assert_eq!(domtree.idom(&Name::from(20)), Some(&Name::from(16)));
-    assert_eq!(domtree.idom_of_return(), &Name::from(20));
+    assert_eq!(domtree.idom_of_return(), Some(&Name::from(20)));
 
     let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
@@ -528,7 +528,7 @@ fn loop_inside_cond_domtree() {
     assert_eq!(domtree.idom(&Name::from(5)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(11)), Some(&Name::from(1)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(1)));
-    assert_eq!(domtree.idom_of_return(), &Name::from(12));
+    assert_eq!(domtree.idom_of_return(), Some(&Name::from(12)));
 
     let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(12))));
@@ -563,7 +563,7 @@ fn search_array_domtree() {
     assert_eq!(domtree.idom(&Name::from(16)), Some(&Name::from(11)));
     assert_eq!(domtree.idom(&Name::from(19)), Some(&Name::from(11)));
     assert_eq!(domtree.idom(&Name::from(21)), Some(&Name::from(11)));
-    assert_eq!(domtree.idom_of_return(), &Name::from(21));
+    assert_eq!(domtree.idom_of_return(), Some(&Name::from(21)));
 
     let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(4))));
@@ -600,7 +600,7 @@ fn nested_loop_domtree() {
     assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(13)));
     assert_eq!(domtree.idom(&Name::from(13)), Some(&Name::from(5)));
     assert_eq!(domtree.idom(&Name::from(7)), Some(&Name::from(1)));
-    assert_eq!(domtree.idom_of_return(), &Name::from(7));
+    assert_eq!(domtree.idom_of_return(), Some(&Name::from(7)));
 
     let postdomtree = fn_analysis.postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(7))));
@@ -608,6 +608,23 @@ fn nested_loop_domtree() {
     assert_eq!(postdomtree.ipostdom(&Name::from(7)), Some(CFGNode::Return));
     assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(7))));
     assert_eq!(postdomtree.ipostdom(&Name::from(13)), Some(CFGNode::Block(&Name::from(10))));
+}
+
+#[test]
+fn infinite_loop_cfg() {
+    init_logging();
+    let module = Module::from_bc_path(LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = ModuleAnalysis::new(&module);
+    let fn_analysis = analysis.fn_analysis("infinite_loop");
+
+    let domtree = fn_analysis.dominator_tree();
+    assert_eq!(domtree.idom(&Name::from(1)), Some(&Name::from(0)));
+    assert_eq!(domtree.idom_of_return(), None);
+
+    let postdomtree = fn_analysis.postdominator_tree();
+    assert_eq!(postdomtree.ipostdom(&Name::from(0)), None);
+    assert_eq!(postdomtree.ipostdom(&Name::from(1)), None);
 }
 
 
@@ -838,4 +855,17 @@ fn nested_loop_cdg() {
     assert_eq!(cdg.get_control_dependencies(&Name::from(7)).count(), 0);
     assert_eq!(cdg.get_control_dependencies(&Name::from(10)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
     assert_eq!(cdg.get_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10), &Name::from(13)]);
+}
+
+#[test]
+fn infinite_loop_cdg() {
+    init_logging();
+    let module = Module::from_bc_path(LOOP_BC_PATH)
+        .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
+    let analysis = ModuleAnalysis::new(&module);
+
+    let cdg = analysis.fn_analysis("infinite_loop").control_dependence_graph();
+
+    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
+    assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
 }

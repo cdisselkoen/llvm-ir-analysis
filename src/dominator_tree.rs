@@ -192,14 +192,18 @@ impl<'m> DominatorTree<'m> {
     ///   - Of the blocks that strictly dominate `CFGNode::Return`, bbX is the
     ///     closest to `CFGNode::Return` (farthest from entry) along paths through
     ///     the function
-    pub fn idom_of_return(&self) -> &'m Name {
+    ///
+    /// If the return node is unreachable (e.g., due to an infinite loop in the
+    /// function), then the return node has no immediate dominator, and `None` will
+    /// be returned.
+    pub fn idom_of_return(&self) -> Option<&'m Name> {
         let mut parents = self.graph.neighbors_directed(CFGNode::Return, Direction::Incoming);
-        let idom = parents.next().expect("Return node should have an idom");
+        let idom = parents.next()?;
         if let Some(_) = parents.next() {
             panic!("Return node should have only one immediate dominator");
         }
         match idom {
-            CFGNode::Block(block) => block,
+            CFGNode::Block(block) => Some(block),
             CFGNode::Return => panic!("Return node shouldn't be its own immediate dominator"),
         }
     }
@@ -250,8 +254,9 @@ impl<'m> PostDominatorTree<'m> {
 
     /// Get the immediate postdominator of the basic block with the given `Name`.
     ///
-    /// This will be `None` for unreachable blocks, and `Some` for all other
-    /// blocks.
+    /// This will be `None` for unreachable blocks (or, in some cases, when the
+    /// function return is unreachable, e.g. due to an infinite loop), and `Some`
+    /// for all other blocks.
     ///
     /// A block bbX is the immediate postdominator of bbY if and only if:
     ///   - bbX strictly postdominates bbY, i.e., bbX appears on every control-flow
