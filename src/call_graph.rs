@@ -31,7 +31,12 @@ impl<'m> CallGraph<'m> {
                             match &call.function {
                                 Either::Right(Operand::ConstantOperand(cref)) => {
                                     match cref.as_ref() {
+                                        #[cfg(not(feature = "llvm-15"))]
                                         Constant::GlobalReference { name: Name::Name(name), .. } => {
+                                            graph.add_edge(&f.name, name, ());
+                                        },
+                                        #[cfg(feature = "llvm-15")]
+                                        Constant::GlobalReference { name: name, .. } => {
                                             graph.add_edge(&f.name, name, ());
                                         },
                                         Constant::GlobalReference { name, .. } => {
@@ -43,6 +48,7 @@ impl<'m> CallGraph<'m> {
                                             // to any function in the current module that has
                                             // the appropriate type
                                             let func_ty = match module.type_of(&call.function).as_ref() {
+                                                #[cfg(not(feature = "llvm-15"))]
                                                 Type::PointerType { pointee_type, .. } => pointee_type.clone(),
                                                 ty => panic!("Expected function pointer to have pointer type, but got {:?}", ty),
                                             };
@@ -57,6 +63,7 @@ impl<'m> CallGraph<'m> {
                                     // function in the current module that has the
                                     // appropriate type
                                     let func_ty = match module.type_of(&call.function).as_ref() {
+                                        #[cfg(not(feature = "llvm-15"))]
                                         Type::PointerType { pointee_type, .. } => pointee_type.clone(),
                                         ty => panic!("Expected function pointer to have pointer type, but got {:?}", ty),
                                     };

@@ -31,6 +31,8 @@ llvm-10 = ["llvm-ir/llvm-10"]
 llvm-11 = ["llvm-ir/llvm-11"]
 llvm-12 = ["llvm-ir/llvm-12"]
 llvm-13 = ["llvm-ir/llvm-13"]
+llvm-14 = ["llvm-ir/llvm-14"]
+llvm-15 = ["llvm-ir/llvm-15"]
 
 # These features select the corresponding LLVM version, and require an exact
 # match between the system LLVM version and the LLVM version chosen here. For
@@ -41,6 +43,8 @@ llvm-10-strict = ["llvm-10", "llvm-ir/llvm-10-strict"]
 llvm-11-strict = ["llvm-11", "llvm-ir/llvm-11-strict"]
 llvm-12-strict = ["llvm-12", "llvm-ir/llvm-12-strict"]
 llvm-13-strict = ["llvm-13", "llvm-ir/llvm-13-strict"]
+llvm-14-strict = ["llvm-14", "llvm-ir/llvm-14-strict"]
+llvm-15-strict = ["llvm-14", "llvm-ir/llvm-15-strict"]
 
 [package.metadata.docs.rs]
 # Generate docs.rs documentation with the llvm-10 feature
