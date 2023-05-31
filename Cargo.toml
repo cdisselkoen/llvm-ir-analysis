@@ -1,6 +1,6 @@
 [package]
 name = "llvm-ir-analysis"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Craig Disselkoen <craigdissel@gmail.com>"]
 edition = "2018"
 description = "Static analysis on LLVM IR"
@@ -14,7 +14,7 @@ license = "MIT"
 
 [dependencies]
 either = "1.6"
-llvm-ir = "0.8.1"
+llvm-ir = "0.8.2"
 log = "0.4"
 petgraph = { version = "0.6.0", default-features = false, features = ["graphmap"] }
 
@@ -31,6 +31,7 @@ llvm-10 = ["llvm-ir/llvm-10"]
 llvm-11 = ["llvm-ir/llvm-11"]
 llvm-12 = ["llvm-ir/llvm-12"]
 llvm-13 = ["llvm-ir/llvm-13"]
+llvm-14 = ["llvm-ir/llvm-14"]
 
 # These features select the corresponding LLVM version, and require an exact
 # match between the system LLVM version and the LLVM version chosen here. For
@@ -41,6 +42,7 @@ llvm-10-strict = ["llvm-10", "llvm-ir/llvm-10-strict"]
 llvm-11-strict = ["llvm-11", "llvm-ir/llvm-11-strict"]
 llvm-12-strict = ["llvm-12", "llvm-ir/llvm-12-strict"]
 llvm-13-strict = ["llvm-13", "llvm-ir/llvm-13-strict"]
+llvm-14-strict = ["llvm-14", "llvm-ir/llvm-14-strict"]
 
 [package.metadata.docs.rs]
 # Generate docs.rs documentation with the llvm-10 feature
