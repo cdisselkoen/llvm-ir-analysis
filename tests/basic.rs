@@ -57,26 +57,16 @@ fn functions_by_type() {
     let analysis = ModuleAnalysis::new(&module);
     let fbt = analysis.functions_by_type();
 
-    let functy = module.types.func_type(
-        module.types.void(),
-        vec![],
-        false,
-    );
+    let functy = module.types.func_type(module.types.void(), vec![], false);
     assert_eq!(fbt.functions_with_type(&functy).count(), 0);
 
-    let functy = module.types.func_type(
-        module.types.i32(),
-        vec![],
-        false,
-    );
+    let functy = module.types.func_type(module.types.i32(), vec![], false);
     let func_names: Vec<&str> = fbt.functions_with_type(&functy).sorted().collect();
     assert_eq!(func_names, vec!["no_args_nozero", "no_args_zero"]);
 
-    let functy = module.types.func_type(
-        module.types.i32(),
-        vec![module.types.i32()],
-        false,
-    );
+    let functy = module
+        .types
+        .func_type(module.types.i32(), vec![module.types.i32()], false);
     let func_names: Vec<&str> = fbt.functions_with_type(&functy).sorted().collect();
     assert_eq!(func_names, vec!["one_arg"]);
 
@@ -86,16 +76,19 @@ fn functions_by_type() {
         false,
     );
     let func_names: Vec<&str> = fbt.functions_with_type(&functy).sorted().collect();
-    assert_eq!(func_names, vec![
-        "binops",
-        "conditional_false",
-        "conditional_nozero",
-        "conditional_true",
-        "conditional_with_and",
-        "has_switch",
-        "int32t",
-        "two_args",
-    ]);
+    assert_eq!(
+        func_names,
+        vec![
+            "binops",
+            "conditional_false",
+            "conditional_nozero",
+            "conditional_true",
+            "conditional_with_and",
+            "has_switch",
+            "int32t",
+            "two_args",
+        ]
+    );
 
     let functy = module.types.func_type(
         module.types.i32(),
@@ -107,7 +100,12 @@ fn functions_by_type() {
 
     let functy = module.types.func_type(
         module.types.i32(),
-        vec![module.types.i32(), module.types.i32(), module.types.i32(), module.types.i32()],
+        vec![
+            module.types.i32(),
+            module.types.i32(),
+            module.types.i32(),
+            module.types.i32(),
+        ],
         false,
     );
     let func_names: Vec<&str> = fbt.functions_with_type(&functy).sorted().collect();
@@ -115,7 +113,13 @@ fn functions_by_type() {
 
     let functy = module.types.func_type(
         module.types.i32(),
-        vec![module.types.i32(), module.types.i32(), module.types.i32(), module.types.i32(), module.types.i32()],
+        vec![
+            module.types.i32(),
+            module.types.i32(),
+            module.types.i32(),
+            module.types.i32(),
+            module.types.i32(),
+        ],
         false,
     );
     let func_names: Vec<&str> = fbt.functions_with_type(&functy).sorted().collect();
@@ -147,7 +151,12 @@ fn functions_by_type() {
 
     let functy = module.types.func_type(
         module.types.i64(),
-        vec![module.types.i8(), module.types.i16(), module.types.i32(), module.types.i64()],
+        vec![
+            module.types.i8(),
+            module.types.i16(),
+            module.types.i32(),
+            module.types.i64(),
+        ],
         false,
     );
     let func_names: Vec<&str> = fbt.functions_with_type(&functy).sorted().collect();
@@ -191,7 +200,9 @@ fn conditional_true_cfg() {
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = ModuleAnalysis::new(&module);
-    let cfg = analysis.fn_analysis("conditional_true").control_flow_graph();
+    let cfg = analysis
+        .fn_analysis("conditional_true")
+        .control_flow_graph();
 
     // CFG:
     //     2
@@ -236,7 +247,9 @@ fn conditional_false_cfg() {
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = ModuleAnalysis::new(&module);
-    let cfg = analysis.fn_analysis("conditional_false").control_flow_graph();
+    let cfg = analysis
+        .fn_analysis("conditional_false")
+        .control_flow_graph();
 
     // CFG:
     //     2
@@ -281,7 +294,9 @@ fn conditional_nozero_cfg() {
     let module = Module::from_bc_path(BASIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = ModuleAnalysis::new(&module);
-    let cfg = analysis.fn_analysis("conditional_nozero").control_flow_graph();
+    let cfg = analysis
+        .fn_analysis("conditional_nozero")
+        .control_flow_graph();
 
     // CFG:
     //  2
@@ -342,7 +357,10 @@ fn conditional_nozero_cfg() {
     assert_eq!(bb12_succs, vec![bb14_node]);
 
     let bb14_preds: Vec<&Name> = cfg.preds(&bb14_name).sorted().collect();
-    assert_eq!(bb14_preds, vec![&bb2_name, &bb6_name, &bb10_name, &bb12_name]);
+    assert_eq!(
+        bb14_preds,
+        vec![&bb2_name, &bb6_name, &bb10_name, &bb12_name]
+    );
     let bb14_succs: Vec<CFGNode> = cfg.succs(&bb14_name).sorted().collect();
     assert_eq!(bb14_succs, vec![CFGNode::Return]);
 }
@@ -388,15 +406,10 @@ fn has_switch_cfg() {
     let bb2_preds: Vec<&Name> = cfg.preds(&bb2_name).sorted().collect();
     assert!(bb2_preds.is_empty());
     let bb2_succs: Vec<CFGNode> = cfg.succs(&bb2_name).sorted().collect();
-    assert_eq!(bb2_succs, vec![
-        bb4_node,
-        bb5_node,
-        bb7_node,
-        bb10_node,
-        bb11_node,
-        bb12_node,
-        bb14_node,
-    ]);
+    assert_eq!(
+        bb2_succs,
+        vec![bb4_node, bb5_node, bb7_node, bb10_node, bb11_node, bb12_node, bb14_node,]
+    );
 
     let bb4_preds: Vec<&Name> = cfg.preds(&bb4_name).sorted().collect();
     assert_eq!(bb4_preds, vec![&bb2_name]);
@@ -429,15 +442,10 @@ fn has_switch_cfg() {
     assert_eq!(bb12_succs, vec![bb14_node]);
 
     let bb14_preds: Vec<&Name> = cfg.preds(&bb14_name).sorted().collect();
-    assert_eq!(bb14_preds, vec![
-        &bb2_name,
-        &bb4_name,
-        &bb5_name,
-        &bb7_name,
-        &bb10_name,
-        &bb11_name,
-        &bb12_name,
-    ]);
+    assert_eq!(
+        bb14_preds,
+        vec![&bb2_name, &bb4_name, &bb5_name, &bb7_name, &bb10_name, &bb11_name, &bb12_name,]
+    );
     let bb14_succs: Vec<CFGNode> = cfg.succs(&bb14_name).sorted().collect();
     assert_eq!(bb14_succs, vec![CFGNode::Return]);
 }
@@ -468,27 +476,75 @@ fn trivial_domtrees() {
         let domtree = analysis.fn_analysis(func_name).dominator_tree();
         let entry = domtree.entry();
         assert_eq!(domtree.idom(entry), None);
-        assert_eq!(domtree.children(entry).collect::<Vec<_>>(), vec![CFGNode::Return]);
-        assert_eq!(domtree.dominates(CFGNode::Block(entry), CFGNode::Block(entry)), true);
-        assert_eq!(domtree.dominates(CFGNode::Block(entry), CFGNode::Return), true);
-        assert_eq!(domtree.dominates(CFGNode::Return, CFGNode::Block(entry)), false);
+        assert_eq!(
+            domtree.children(entry).collect::<Vec<_>>(),
+            vec![CFGNode::Return]
+        );
+        assert_eq!(
+            domtree.dominates(CFGNode::Block(entry), CFGNode::Block(entry)),
+            true
+        );
+        assert_eq!(
+            domtree.dominates(CFGNode::Block(entry), CFGNode::Return),
+            true
+        );
+        assert_eq!(
+            domtree.dominates(CFGNode::Return, CFGNode::Block(entry)),
+            false
+        );
         assert_eq!(domtree.dominates(CFGNode::Return, CFGNode::Return), true);
-        assert_eq!(domtree.strictly_dominates(CFGNode::Block(entry), CFGNode::Block(entry)), false);
-        assert_eq!(domtree.strictly_dominates(CFGNode::Block(entry), CFGNode::Return), true);
-        assert_eq!(domtree.strictly_dominates(CFGNode::Return, CFGNode::Block(entry)), false);
-        assert_eq!(domtree.strictly_dominates(CFGNode::Return, CFGNode::Return), false);
+        assert_eq!(
+            domtree.strictly_dominates(CFGNode::Block(entry), CFGNode::Block(entry)),
+            false
+        );
+        assert_eq!(
+            domtree.strictly_dominates(CFGNode::Block(entry), CFGNode::Return),
+            true
+        );
+        assert_eq!(
+            domtree.strictly_dominates(CFGNode::Return, CFGNode::Block(entry)),
+            false
+        );
+        assert_eq!(
+            domtree.strictly_dominates(CFGNode::Return, CFGNode::Return),
+            false
+        );
 
         let postdomtree = analysis.fn_analysis(func_name).postdominator_tree();
         assert_eq!(postdomtree.ipostdom(entry), Some(CFGNode::Return));
         assert_eq!(postdomtree.children(entry).count(), 0);
-        assert_eq!(postdomtree.postdominates(CFGNode::Block(entry), CFGNode::Block(entry)), true);
-        assert_eq!(postdomtree.postdominates(CFGNode::Block(entry), CFGNode::Return), false);
-        assert_eq!(postdomtree.postdominates(CFGNode::Return, CFGNode::Block(entry)), true);
-        assert_eq!(postdomtree.postdominates(CFGNode::Return, CFGNode::Return), true);
-        assert_eq!(postdomtree.strictly_postdominates(CFGNode::Block(entry), CFGNode::Block(entry)), false);
-        assert_eq!(postdomtree.strictly_postdominates(CFGNode::Block(entry), CFGNode::Return), false);
-        assert_eq!(postdomtree.strictly_postdominates(CFGNode::Return, CFGNode::Block(entry)), true);
-        assert_eq!(postdomtree.strictly_postdominates(CFGNode::Return, CFGNode::Return), false);
+        assert_eq!(
+            postdomtree.postdominates(CFGNode::Block(entry), CFGNode::Block(entry)),
+            true
+        );
+        assert_eq!(
+            postdomtree.postdominates(CFGNode::Block(entry), CFGNode::Return),
+            false
+        );
+        assert_eq!(
+            postdomtree.postdominates(CFGNode::Return, CFGNode::Block(entry)),
+            true
+        );
+        assert_eq!(
+            postdomtree.postdominates(CFGNode::Return, CFGNode::Return),
+            true
+        );
+        assert_eq!(
+            postdomtree.strictly_postdominates(CFGNode::Block(entry), CFGNode::Block(entry)),
+            false
+        );
+        assert_eq!(
+            postdomtree.strictly_postdominates(CFGNode::Block(entry), CFGNode::Return),
+            false
+        );
+        assert_eq!(
+            postdomtree.strictly_postdominates(CFGNode::Return, CFGNode::Block(entry)),
+            true
+        );
+        assert_eq!(
+            postdomtree.strictly_postdominates(CFGNode::Return, CFGNode::Return),
+            false
+        );
     }
 }
 
@@ -533,21 +589,50 @@ fn conditional_true_domtree() {
     let children: Vec<CFGNode> = domtree.children(&bb12_name).sorted().collect();
     assert_eq!(children, vec![CFGNode::Return]);
 
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb4_name)), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb8_name)), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb12_name)), false);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)), false);
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb4_name)),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb8_name)),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb12_name)),
+        false
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)),
+        false
+    );
 
-    let postdomtree = analysis.fn_analysis("conditional_true").postdominator_tree();
+    let postdomtree = analysis
+        .fn_analysis("conditional_true")
+        .postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&bb2_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb4_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb8_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb12_name), Some(CFGNode::Return));
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb2_name)), false);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb4_name)), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)), false);
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb2_name)),
+        false
+    );
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb4_name)),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)),
+        false
+    );
 }
 
 #[test]
@@ -591,21 +676,50 @@ fn conditional_false_domtree() {
     let children: Vec<CFGNode> = domtree.children(&bb12_name).sorted().collect();
     assert_eq!(children, vec![CFGNode::Return]);
 
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb4_name)), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb8_name)), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb12_name)), false);
-    assert_eq!(domtree.dominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)), false);
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb4_name)),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb8_name)),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb12_name)),
+        false
+    );
+    assert_eq!(
+        domtree.dominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)),
+        false
+    );
 
-    let postdomtree = analysis.fn_analysis("conditional_false").postdominator_tree();
+    let postdomtree = analysis
+        .fn_analysis("conditional_false")
+        .postdominator_tree();
     assert_eq!(postdomtree.ipostdom(&bb2_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb4_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb8_name), Some(bb12_node));
     assert_eq!(postdomtree.ipostdom(&bb12_name), Some(CFGNode::Return));
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb2_name)), false);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb4_name)), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)), false);
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb2_name)),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb4_name), CFGNode::Block(&bb2_name)),
+        false
+    );
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb12_name), CFGNode::Block(&bb4_name)),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(CFGNode::Block(&bb2_name), CFGNode::Block(&bb12_name)),
+        false
+    );
 }
 
 #[test]
@@ -636,31 +750,147 @@ fn conditional_nozero_domtree() {
     assert_eq!(domtree.idom(&Name::from(10)), Some(&Name::from(8)));
     assert_eq!(domtree.idom(&Name::from(12)), Some(&Name::from(8)));
     assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(2)), CFGNode::Block(&Name::from(4))), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(2)), CFGNode::Block(&Name::from(6))), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(2)), CFGNode::Block(&Name::from(10))), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(2)), CFGNode::Block(&Name::from(14))), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(4)), CFGNode::Block(&Name::from(6))), true);
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(8)), CFGNode::Block(&Name::from(6))), false);
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(4)), CFGNode::Block(&Name::from(14))), false);
-    assert_eq!(domtree.dominates(CFGNode::Block(&Name::from(14)), CFGNode::Block(&Name::from(2))), false);
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(2)),
+            CFGNode::Block(&Name::from(4))
+        ),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(2)),
+            CFGNode::Block(&Name::from(6))
+        ),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(2)),
+            CFGNode::Block(&Name::from(10))
+        ),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(2)),
+            CFGNode::Block(&Name::from(14))
+        ),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(4)),
+            CFGNode::Block(&Name::from(6))
+        ),
+        true
+    );
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(8)),
+            CFGNode::Block(&Name::from(6))
+        ),
+        false
+    );
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(4)),
+            CFGNode::Block(&Name::from(14))
+        ),
+        false
+    );
+    assert_eq!(
+        domtree.dominates(
+            CFGNode::Block(&Name::from(14)),
+            CFGNode::Block(&Name::from(2))
+        ),
+        false
+    );
 
-    let postdomtree = analysis.fn_analysis("conditional_nozero").postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(2)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(8)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(12)), Some(CFGNode::Block(&Name::from(14))));
+    let postdomtree = analysis
+        .fn_analysis("conditional_nozero")
+        .postdominator_tree();
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(2)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(4)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(6)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(8)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(10)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(12)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(14)), Some(CFGNode::Return));
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(14)), CFGNode::Block(&Name::from(2))), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(14)), CFGNode::Block(&Name::from(4))), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(14)), CFGNode::Block(&Name::from(8))), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(14)), CFGNode::Block(&Name::from(10))), true);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(6)), CFGNode::Block(&Name::from(2))), false);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(6)), CFGNode::Block(&Name::from(4))), false);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(10)), CFGNode::Block(&Name::from(4))), false);
-    assert_eq!(postdomtree.postdominates(CFGNode::Block(&Name::from(2)), CFGNode::Block(&Name::from(14))), false);
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(14)),
+            CFGNode::Block(&Name::from(2))
+        ),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(14)),
+            CFGNode::Block(&Name::from(4))
+        ),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(14)),
+            CFGNode::Block(&Name::from(8))
+        ),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(14)),
+            CFGNode::Block(&Name::from(10))
+        ),
+        true
+    );
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(6)),
+            CFGNode::Block(&Name::from(2))
+        ),
+        false
+    );
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(6)),
+            CFGNode::Block(&Name::from(4))
+        ),
+        false
+    );
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(10)),
+            CFGNode::Block(&Name::from(4))
+        ),
+        false
+    );
+    assert_eq!(
+        postdomtree.postdominates(
+            CFGNode::Block(&Name::from(2)),
+            CFGNode::Block(&Name::from(14))
+        ),
+        false
+    );
 }
 
 #[test]
@@ -694,13 +924,34 @@ fn has_switch_domtree() {
     assert_eq!(domtree.idom(&Name::from(14)), Some(&Name::from(2)));
 
     let postdomtree = analysis.fn_analysis("has_switch").postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(2)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(7)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(11)), Some(CFGNode::Block(&Name::from(14))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(12)), Some(CFGNode::Block(&Name::from(14))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(2)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(4)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(5)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(7)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(10)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(11)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(12)),
+        Some(CFGNode::Block(&Name::from(14)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(14)), Some(CFGNode::Return));
 }
 
@@ -753,12 +1004,20 @@ fn conditional_true_cdg() {
     let bb8_name = Name::from(8);
     let bb12_name = Name::from(12);
 
-    let cdg = analysis.fn_analysis("conditional_true").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("conditional_true")
+        .control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());
     let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
-    assert_eq!(bb2_dependents, vec![CFGNode::Block(&Name::from(4)), CFGNode::Block(&Name::from(8))]);
+    assert_eq!(
+        bb2_dependents,
+        vec![
+            CFGNode::Block(&Name::from(4)),
+            CFGNode::Block(&Name::from(8))
+        ]
+    );
 
     let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
     assert_eq!(bb4_dependencies, vec![&Name::from(2)]);
@@ -799,12 +1058,20 @@ fn conditional_false_cdg() {
     let bb8_name = Name::from(8);
     let bb12_name = Name::from(12);
 
-    let cdg = analysis.fn_analysis("conditional_false").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("conditional_false")
+        .control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());
     let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
-    assert_eq!(bb2_dependents, vec![CFGNode::Block(&Name::from(4)), CFGNode::Block(&Name::from(8))]);
+    assert_eq!(
+        bb2_dependents,
+        vec![
+            CFGNode::Block(&Name::from(4)),
+            CFGNode::Block(&Name::from(8))
+        ]
+    );
 
     let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
     assert_eq!(bb4_dependencies, vec![&Name::from(2)]);
@@ -854,28 +1121,36 @@ fn conditional_nozero_cdg() {
     let bb12_name = Name::from(12);
     let bb14_name = Name::from(14);
 
-    let cdg = analysis.fn_analysis("conditional_nozero").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("conditional_nozero")
+        .control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());
     let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
-    assert_eq!(bb2_dependents, vec![
-        CFGNode::Block(&Name::from(4)),
-        CFGNode::Block(&Name::from(6)),
-        CFGNode::Block(&Name::from(8)),
-        CFGNode::Block(&Name::from(10)),
-        CFGNode::Block(&Name::from(12)),
-    ]);
+    assert_eq!(
+        bb2_dependents,
+        vec![
+            CFGNode::Block(&Name::from(4)),
+            CFGNode::Block(&Name::from(6)),
+            CFGNode::Block(&Name::from(8)),
+            CFGNode::Block(&Name::from(10)),
+            CFGNode::Block(&Name::from(12)),
+        ]
+    );
 
     let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
     assert_eq!(bb4_dependencies, vec![&Name::from(2)]);
     let bb4_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb4_name).sorted().collect();
-    assert_eq!(bb4_dependents, vec![
-        CFGNode::Block(&Name::from(6)),
-        CFGNode::Block(&Name::from(8)),
-        CFGNode::Block(&Name::from(10)),
-        CFGNode::Block(&Name::from(12)),
-    ]);
+    assert_eq!(
+        bb4_dependents,
+        vec![
+            CFGNode::Block(&Name::from(6)),
+            CFGNode::Block(&Name::from(8)),
+            CFGNode::Block(&Name::from(10)),
+            CFGNode::Block(&Name::from(12)),
+        ]
+    );
 
     let bb6_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb6_name).sorted().collect();
     assert_eq!(bb6_dependencies, vec![&Name::from(2), &Name::from(4)]);
@@ -885,18 +1160,27 @@ fn conditional_nozero_cdg() {
     let bb8_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb8_name).sorted().collect();
     assert_eq!(bb8_dependencies, vec![&Name::from(2), &Name::from(4)]);
     let bb8_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb8_name).sorted().collect();
-    assert_eq!(bb8_dependents, vec![
-        CFGNode::Block(&Name::from(10)),
-        CFGNode::Block(&Name::from(12)),
-    ]);
+    assert_eq!(
+        bb8_dependents,
+        vec![
+            CFGNode::Block(&Name::from(10)),
+            CFGNode::Block(&Name::from(12)),
+        ]
+    );
 
     let bb10_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb10_name).sorted().collect();
-    assert_eq!(bb10_dependencies, vec![&Name::from(2), &Name::from(4), &Name::from(8)]);
+    assert_eq!(
+        bb10_dependencies,
+        vec![&Name::from(2), &Name::from(4), &Name::from(8)]
+    );
     let bb10_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb10_name).sorted().collect();
     assert!(bb10_dependents.is_empty());
 
     let bb12_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb12_name).sorted().collect();
-    assert_eq!(bb12_dependencies, vec![&Name::from(2), &Name::from(4), &Name::from(8)]);
+    assert_eq!(
+        bb12_dependencies,
+        vec![&Name::from(2), &Name::from(4), &Name::from(8)]
+    );
     let bb12_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb12_name).sorted().collect();
     assert!(bb12_dependents.is_empty());
 
@@ -941,19 +1225,24 @@ fn has_switch_cdg() {
     let bb12_name = Name::from(12);
     let bb14_name = Name::from(14);
 
-    let cdg = analysis.fn_analysis("has_switch").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("has_switch")
+        .control_dependence_graph();
 
     let bb2_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb2_name).sorted().collect();
     assert!(bb2_dependencies.is_empty());
     let bb2_dependents: Vec<CFGNode> = cdg.get_control_dependents(&bb2_name).sorted().collect();
-    assert_eq!(bb2_dependents, vec![
-        CFGNode::Block(&Name::from(4)),
-        CFGNode::Block(&Name::from(5)),
-        CFGNode::Block(&Name::from(7)),
-        CFGNode::Block(&Name::from(10)),
-        CFGNode::Block(&Name::from(11)),
-        CFGNode::Block(&Name::from(12)),
-    ]);
+    assert_eq!(
+        bb2_dependents,
+        vec![
+            CFGNode::Block(&Name::from(4)),
+            CFGNode::Block(&Name::from(5)),
+            CFGNode::Block(&Name::from(7)),
+            CFGNode::Block(&Name::from(10)),
+            CFGNode::Block(&Name::from(11)),
+            CFGNode::Block(&Name::from(12)),
+        ]
+    );
 
     let bb4_dependencies: Vec<&Name> = cdg.get_control_dependencies(&bb4_name).sorted().collect();
     assert_eq!(bb4_dependencies, vec![&Name::from(2)]);

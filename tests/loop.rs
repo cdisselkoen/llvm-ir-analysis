@@ -90,14 +90,15 @@ fn for_loop_cfg() {
     assert_eq!(bb9_succs, vec![bb6_node, bb9_node]);
 }
 
-
 #[test]
 fn loop_zero_iterations_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = ModuleAnalysis::new(&module);
-    let cfg = analysis.fn_analysis("loop_zero_iterations").control_flow_graph();
+    let cfg = analysis
+        .fn_analysis("loop_zero_iterations")
+        .control_flow_graph();
 
     // CFG:
     //   1
@@ -212,14 +213,15 @@ fn loop_with_cond_cfg() {
     assert_eq!(bb20_succs, vec![CFGNode::Return]);
 }
 
-
 #[test]
 fn loop_inside_cond_cfg() {
     init_logging();
     let module = Module::from_bc_path(LOOP_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = ModuleAnalysis::new(&module);
-    let cfg = analysis.fn_analysis("loop_inside_cond").control_flow_graph();
+    let cfg = analysis
+        .fn_analysis("loop_inside_cond")
+        .control_flow_graph();
 
     // CFG:
     //      1      _
@@ -402,8 +404,14 @@ fn while_loop_domtree() {
     assert_eq!(domtree.idom_of_return(), Some(&Name::from(12)));
 
     let postdomtree = fn_analysis.postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Block(&Name::from(12))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(1)),
+        Some(CFGNode::Block(&Name::from(6)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(6)),
+        Some(CFGNode::Block(&Name::from(12)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(12)), Some(CFGNode::Return));
 }
 
@@ -429,9 +437,15 @@ fn for_loop_domtree() {
     assert_eq!(domtree.idom_of_return(), Some(&Name::from(6)));
 
     let postdomtree = fn_analysis.postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(1)),
+        Some(CFGNode::Block(&Name::from(6)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Return));
-    assert_eq!(postdomtree.ipostdom(&Name::from(9)), Some(CFGNode::Block(&Name::from(6))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(9)),
+        Some(CFGNode::Block(&Name::from(6)))
+    );
 }
 
 #[test]
@@ -462,10 +476,22 @@ fn loop_zero_iterations_domtree() {
     assert_eq!(domtree.idom_of_return(), Some(&Name::from(18)));
 
     let postdomtree = fn_analysis.postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(18))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(8))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(8)), Some(CFGNode::Block(&Name::from(18))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(11)), Some(CFGNode::Block(&Name::from(8))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(1)),
+        Some(CFGNode::Block(&Name::from(18)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(5)),
+        Some(CFGNode::Block(&Name::from(8)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(8)),
+        Some(CFGNode::Block(&Name::from(18)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(11)),
+        Some(CFGNode::Block(&Name::from(8)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(18)), Some(CFGNode::Return));
 }
 
@@ -500,11 +526,26 @@ fn loop_with_cond_domtree() {
     assert_eq!(domtree.idom_of_return(), Some(&Name::from(20)));
 
     let postdomtree = fn_analysis.postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(6))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(6)), Some(CFGNode::Block(&Name::from(16))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(16))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(13)), Some(CFGNode::Block(&Name::from(16))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(16)), Some(CFGNode::Block(&Name::from(20))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(1)),
+        Some(CFGNode::Block(&Name::from(6)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(6)),
+        Some(CFGNode::Block(&Name::from(16)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(10)),
+        Some(CFGNode::Block(&Name::from(16)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(13)),
+        Some(CFGNode::Block(&Name::from(16)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(16)),
+        Some(CFGNode::Block(&Name::from(20)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(20)), Some(CFGNode::Return));
 }
 
@@ -531,9 +572,18 @@ fn loop_inside_cond_domtree() {
     assert_eq!(domtree.idom_of_return(), Some(&Name::from(12)));
 
     let postdomtree = fn_analysis.postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(12))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(12))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(11)), Some(CFGNode::Block(&Name::from(12))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(1)),
+        Some(CFGNode::Block(&Name::from(12)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(5)),
+        Some(CFGNode::Block(&Name::from(12)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(11)),
+        Some(CFGNode::Block(&Name::from(12)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(12)), Some(CFGNode::Return));
 }
 
@@ -566,11 +616,26 @@ fn search_array_domtree() {
     assert_eq!(domtree.idom_of_return(), Some(&Name::from(21)));
 
     let postdomtree = fn_analysis.postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(4))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(4)), Some(CFGNode::Block(&Name::from(11))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(11)), Some(CFGNode::Block(&Name::from(21))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(16)), Some(CFGNode::Block(&Name::from(21))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(19)), Some(CFGNode::Block(&Name::from(21))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(1)),
+        Some(CFGNode::Block(&Name::from(4)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(4)),
+        Some(CFGNode::Block(&Name::from(11)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(11)),
+        Some(CFGNode::Block(&Name::from(21)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(16)),
+        Some(CFGNode::Block(&Name::from(21)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(19)),
+        Some(CFGNode::Block(&Name::from(21)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(21)), Some(CFGNode::Return));
 }
 
@@ -603,11 +668,23 @@ fn nested_loop_domtree() {
     assert_eq!(domtree.idom_of_return(), Some(&Name::from(7)));
 
     let postdomtree = fn_analysis.postdominator_tree();
-    assert_eq!(postdomtree.ipostdom(&Name::from(1)), Some(CFGNode::Block(&Name::from(7))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(5)), Some(CFGNode::Block(&Name::from(13))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(1)),
+        Some(CFGNode::Block(&Name::from(7)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(5)),
+        Some(CFGNode::Block(&Name::from(13)))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from(7)), Some(CFGNode::Return));
-    assert_eq!(postdomtree.ipostdom(&Name::from(10)), Some(CFGNode::Block(&Name::from(7))));
-    assert_eq!(postdomtree.ipostdom(&Name::from(13)), Some(CFGNode::Block(&Name::from(10))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(10)),
+        Some(CFGNode::Block(&Name::from(7)))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from(13)),
+        Some(CFGNode::Block(&Name::from(10)))
+    );
 }
 
 #[test]
@@ -627,7 +704,6 @@ fn infinite_loop_cfg() {
     assert_eq!(postdomtree.ipostdom(&Name::from(1)), None);
 }
 
-
 #[test]
 fn while_loop_cdg() {
     init_logging();
@@ -644,20 +720,42 @@ fn while_loop_cdg() {
     //  |
     //  12
 
-    let cdg = analysis.fn_analysis("while_loop").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("while_loop")
+        .control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(6)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(6))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(6)]
+    );
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(12)).count(), 0);
 
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(6)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(6))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(6)]
+    );
     assert_eq!(cdg.get_control_dependencies(&Name::from(12)).count(), 0);
 
-    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(1)), false);
-    assert_eq!(cdg.is_control_dependent(&Name::from(1), &Name::from(6)), false);
-    assert_eq!(cdg.is_control_dependent(&Name::from(1), &Name::from(1)), false);
-    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(6)), true);
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(6), &Name::from(1)),
+        false
+    );
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(1), &Name::from(6)),
+        false
+    );
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(1), &Name::from(1)),
+        false
+    );
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(6), &Name::from(6)),
+        true
+    );
 }
 
 #[test]
@@ -678,11 +776,21 @@ fn for_loop_cdg() {
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(9)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(9)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(9))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(9)]
+    );
 
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_control_dependencies(&Name::from(6)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(9)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(9)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(9))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(9)]
+    );
 }
 
 #[test]
@@ -703,18 +811,46 @@ fn loop_zero_iterations_cdg() {
     //   | /
     //  18
 
-    let cdg = analysis.fn_analysis("loop_zero_iterations").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("loop_zero_iterations")
+        .control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).collect::<Vec<_>>(), vec![&Name::from(1)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(8)).collect::<Vec<_>>(), vec![&Name::from(1)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(11)).sorted().collect::<Vec<_>>(), vec![&Name::from(5), &Name::from(11)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(5))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(8))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(11))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(5), &Name::from(11)]
+    );
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(18)).count(), 0);
 
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(5)).collect::<Vec<_>>(), vec![&Name::from(1)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(8)).collect::<Vec<_>>(), vec![&Name::from(1)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(11)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(5), &Name::from(11)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(5))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(8))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(11))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(5), &Name::from(11)]
+    );
     assert_eq!(cdg.get_control_dependencies(&Name::from(18)).count(), 0);
 }
 
@@ -738,27 +874,81 @@ fn loop_with_cond_cdg() {
     //   |
     //  20
 
-    let cdg = analysis.fn_analysis("loop_with_cond").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("loop_with_cond")
+        .control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(16)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(10)).collect::<Vec<_>>(), vec![&Name::from(6)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(6), &Name::from(10)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(16)).sorted().collect::<Vec<_>>(), vec![&Name::from(16)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(6))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(16)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(10))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(6)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(13))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(6), &Name::from(10)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(16))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(16)]
+    );
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(20)).count(), 0);
 
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(6)).collect::<Vec<_>>(), vec![&Name::from(16)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(10)).sorted().collect::<Vec<_>>(), vec![&Name::from(6), &Name::from(16)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(6), &Name::from(10), &Name::from(16)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(16)).sorted().collect::<Vec<_>>(), vec![&Name::from(16)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(6))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(16)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(10))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(6), &Name::from(16)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(13))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(6), &Name::from(10), &Name::from(16)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(16))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(16)]
+    );
     assert_eq!(cdg.get_control_dependencies(&Name::from(20)).count(), 0);
 
-    assert_eq!(cdg.is_control_dependent(&Name::from(10), &Name::from(6)), true);
-    assert_eq!(cdg.is_control_dependent(&Name::from(10), &Name::from(16)), true);
-    assert_eq!(cdg.is_control_dependent(&Name::from(16), &Name::from(16)), true);
-    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(6)), false);
-    assert_eq!(cdg.is_control_dependent(&Name::from(6), &Name::from(10)), false);
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(10), &Name::from(6)),
+        true
+    );
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(10), &Name::from(16)),
+        true
+    );
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(16), &Name::from(16)),
+        true
+    );
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(6), &Name::from(6)),
+        false
+    );
+    assert_eq!(
+        cdg.is_control_dependent(&Name::from(6), &Name::from(10)),
+        false
+    );
 }
 
 #[test]
@@ -775,16 +965,36 @@ fn loop_inside_cond_cdg() {
     //    \   /
     //     12
 
-    let cdg = analysis.fn_analysis("loop_inside_cond").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("loop_inside_cond")
+        .control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(5)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(11)).collect::<Vec<_>>(), vec![&Name::from(1)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(5))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(5)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(11))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1)]
+    );
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(12)).count(), 0);
 
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(5)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(11)).collect::<Vec<_>>(), vec![&Name::from(1)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(5))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(5)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(11))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1)]
+    );
     assert_eq!(cdg.get_control_dependencies(&Name::from(12)).count(), 0);
 }
 
@@ -806,20 +1016,57 @@ fn search_array_cdg() {
     //    \  /
     //     21
 
-    let cdg = analysis.fn_analysis("search_array").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("search_array")
+        .control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(4)).collect::<Vec<_>>(), vec![&Name::from(4)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(11)).collect::<Vec<_>>(), vec![&Name::from(16)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(16)).collect::<Vec<_>>(), vec![&Name::from(11)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(19)).collect::<Vec<_>>(), vec![&Name::from(11)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(4))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(4)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(11))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(16)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(16))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(11)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(19))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(11)]
+    );
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(21)).count(), 0);
 
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(4)).collect::<Vec<_>>(), vec![&Name::from(4)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(11)).sorted().collect::<Vec<_>>(), vec![&Name::from(11), &Name::from(16)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(16)).sorted().collect::<Vec<_>>(), vec![&Name::from(11), &Name::from(16)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(19)).sorted().collect::<Vec<_>>(), vec![&Name::from(11), &Name::from(16)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(4))
+            .collect::<Vec<_>>(),
+        vec![&Name::from(4)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(11))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(11), &Name::from(16)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(16))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(11), &Name::from(16)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(19))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(11), &Name::from(16)]
+    );
     assert_eq!(cdg.get_control_dependencies(&Name::from(21)).count(), 0);
 }
 
@@ -842,19 +1089,51 @@ fn nested_loop_cdg() {
     //  | /
     //  7
 
-    let cdg = analysis.fn_analysis("nested_loop").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("nested_loop")
+        .control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(5))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(10)]
+    );
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(7)).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(10)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10), &Name::from(13)]);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(10))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(10)]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from(13))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(10), &Name::from(13)]
+    );
 
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(5)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(5))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(10)]
+    );
     assert_eq!(cdg.get_control_dependencies(&Name::from(7)).count(), 0);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(10)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10)]);
-    assert_eq!(cdg.get_control_dependencies(&Name::from(13)).sorted().collect::<Vec<_>>(), vec![&Name::from(1), &Name::from(10), &Name::from(13)]);
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(10))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(10)]
+    );
+    assert_eq!(
+        cdg.get_control_dependencies(&Name::from(13))
+            .sorted()
+            .collect::<Vec<_>>(),
+        vec![&Name::from(1), &Name::from(10), &Name::from(13)]
+    );
 }
 
 #[test]
@@ -864,7 +1143,9 @@ fn infinite_loop_cdg() {
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = ModuleAnalysis::new(&module);
 
-    let cdg = analysis.fn_analysis("infinite_loop").control_dependence_graph();
+    let cdg = analysis
+        .fn_analysis("infinite_loop")
+        .control_dependence_graph();
 
     assert_eq!(cdg.get_imm_control_dependencies(&Name::from(1)).count(), 0);
     assert_eq!(cdg.get_control_dependencies(&Name::from(1)).count(), 0);

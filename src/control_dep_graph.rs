@@ -28,7 +28,9 @@ impl<'m> ControlDependenceGraph<'m> {
 
         let mut graph = DiGraphMap::new();
 
-        for block_x in DfsPostOrder::new(&postdomtree.graph, CFGNode::Return).iter(&postdomtree.graph) {
+        for block_x in
+            DfsPostOrder::new(&postdomtree.graph, CFGNode::Return).iter(&postdomtree.graph)
+        {
             let mut postdominance_frontier_of_x = vec![];
             for block_y in cfg.preds_as_nodes(block_x) {
                 if postdomtree.ipostdom_of_cfgnode(block_y) != Some(block_x) {
@@ -55,15 +57,23 @@ impl<'m> ControlDependenceGraph<'m> {
     }
 
     /// Get the blocks that `block` has an immediate control dependency on.
-    pub fn get_imm_control_dependencies<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = &'m Name> + 's {
+    pub fn get_imm_control_dependencies<'s>(
+        &'s self,
+        block: &'m Name,
+    ) -> impl Iterator<Item = &'m Name> + 's {
         self.get_imm_control_dependencies_of_cfgnode(CFGNode::Block(block))
     }
 
-    pub(crate) fn get_imm_control_dependencies_of_cfgnode<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = &'m Name> + 's {
-        self.graph.neighbors_directed(node, Direction::Outgoing).map(|node| match node {
-            CFGNode::Block(block) => block,
-            CFGNode::Return => panic!("Nothing should be control-dependent on Return"),
-        })
+    pub(crate) fn get_imm_control_dependencies_of_cfgnode<'s>(
+        &'s self,
+        node: CFGNode<'m>,
+    ) -> impl Iterator<Item = &'m Name> + 's {
+        self.graph
+            .neighbors_directed(node, Direction::Outgoing)
+            .map(|node| match node {
+                CFGNode::Block(block) => block,
+                CFGNode::Return => panic!("Nothing should be control-dependent on Return"),
+            })
     }
 
     /// Get the blocks that `block` has a control dependency on (including
@@ -71,16 +81,25 @@ impl<'m> ControlDependenceGraph<'m> {
     ///
     /// This is the block's immediate control dependencies, along with all the
     /// control dependencies of those dependencies, and so on recursively.
-    pub fn get_control_dependencies<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = &'m Name> + 's {
+    pub fn get_control_dependencies<'s>(
+        &'s self,
+        block: &'m Name,
+    ) -> impl Iterator<Item = &'m Name> + 's {
         ControlDependenciesIterator::new(self, block)
     }
 
     /// Get the blocks that have an immediate control dependency on `block`.
-    pub fn get_imm_control_dependents<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = CFGNode<'m>> + 's {
+    pub fn get_imm_control_dependents<'s>(
+        &'s self,
+        block: &'m Name,
+    ) -> impl Iterator<Item = CFGNode<'m>> + 's {
         self.get_imm_control_dependents_of_cfgnode(CFGNode::Block(block))
     }
 
-    pub(crate) fn get_imm_control_dependents_of_cfgnode<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = CFGNode<'m>> + 's {
+    pub(crate) fn get_imm_control_dependents_of_cfgnode<'s>(
+        &'s self,
+        node: CFGNode<'m>,
+    ) -> impl Iterator<Item = CFGNode<'m>> + 's {
         self.graph.neighbors_directed(node, Direction::Incoming)
     }
 
@@ -89,7 +108,10 @@ impl<'m> ControlDependenceGraph<'m> {
     ///
     /// This is the block's immediate control dependents, along with all the
     /// control dependents of those dependents, and so on recursively.
-    pub fn get_control_dependents<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = CFGNode<'m>> + 's {
+    pub fn get_control_dependents<'s>(
+        &'s self,
+        block: &'m Name,
+    ) -> impl Iterator<Item = CFGNode<'m>> + 's {
         ControlDependentsIterator::new(self, block)
     }
 
@@ -97,7 +119,12 @@ impl<'m> ControlDependenceGraph<'m> {
     pub fn is_control_dependent(&self, block_a: &'m Name, block_b: &'m Name) -> bool {
         if block_a != block_b {
             // the simple case: `has_path_connecting()` does exactly what we want
-            petgraph::algo::has_path_connecting(&self.graph, CFGNode::Block(block_a), CFGNode::Block(block_b), None)
+            petgraph::algo::has_path_connecting(
+                &self.graph,
+                CFGNode::Block(block_a),
+                CFGNode::Block(block_b),
+                None,
+            )
         } else {
             // more complicated: we want to know if there is a nonzero-length
             // path from the block to itself, while `has_path_connecting()` is
@@ -105,8 +132,16 @@ impl<'m> ControlDependenceGraph<'m> {
             // which is not what we want.
             // Instead, we check if there is a (zero-or-greater-length) path
             // from any of the block's successors to the block.
-            self.graph.neighbors_directed(CFGNode::Block(block_a), Direction::Outgoing)
-                .any(|succ| petgraph::algo::has_path_connecting(&self.graph, succ, CFGNode::Block(block_a), None))
+            self.graph
+                .neighbors_directed(CFGNode::Block(block_a), Direction::Outgoing)
+                .any(|succ| {
+                    petgraph::algo::has_path_connecting(
+                        &self.graph,
+                        succ,
+                        CFGNode::Block(block_a),
+                        None,
+                    )
+                })
         }
     }
 

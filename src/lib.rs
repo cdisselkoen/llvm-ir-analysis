@@ -43,7 +43,9 @@ impl<'m> ModuleAnalysis<'m> {
             module,
             call_graph: SimpleCache::new(),
             functions_by_type: SimpleCache::new(),
-            fn_analyses: module.functions.iter()
+            fn_analyses: module
+                .functions
+                .iter()
                 .map(|f| (f.name.as_str(), FunctionAnalysis::new(f)))
                 .collect(),
         }
@@ -77,7 +79,8 @@ impl<'m> ModuleAnalysis<'m> {
     /// Panics if no function of that name exists in the `Module` which the
     /// `ModuleAnalysis` was created with.
     pub fn fn_analysis<'s>(&'s self, func_name: &str) -> &'s FunctionAnalysis<'m> {
-        self.fn_analyses.get(func_name)
+        self.fn_analyses
+            .get(func_name)
             .unwrap_or_else(|| panic!("Function named {:?} not found in the Module", func_name))
     }
 }
@@ -150,8 +153,12 @@ impl<'m> CrossModuleAnalysis<'m> {
     /// Panics if no module of that name exists in the `Module`(s) which the
     /// `CrossModuleAnalysis` was created with.
     pub fn module_analysis<'s>(&'s self, mod_name: &str) -> &'s ModuleAnalysis<'m> {
-        self.module_analyses.get(mod_name)
-            .unwrap_or_else(|| panic!("Module named {:?} not found in the CrossModuleAnalysis", mod_name))
+        self.module_analyses.get(mod_name).unwrap_or_else(|| {
+            panic!(
+                "Module named {:?} not found in the CrossModuleAnalysis",
+                mod_name
+            )
+        })
     }
 
     /// Get the `Function` with the given name from the analyzed `Module`(s).
@@ -232,7 +239,10 @@ impl<'m> FunctionAnalysis<'m> {
         self.control_dep_graph.get_or_insert_with(|| {
             let cfg = self.control_flow_graph();
             let postdomtree = self.postdominator_tree();
-            debug!("computing control dependence graph for {}", &self.function.name);
+            debug!(
+                "computing control dependence graph for {}",
+                &self.function.name
+            );
             ControlDependenceGraph::new(&cfg, &postdomtree)
         })
     }

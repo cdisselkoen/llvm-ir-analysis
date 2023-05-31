@@ -48,40 +48,64 @@ impl<'m> ControlFlowGraph<'m> {
             match &bb.term {
                 Terminator::Br(br) => {
                     graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(&br.dest), ());
-                },
+                }
                 Terminator::CondBr(condbr) => {
-                    graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(&condbr.true_dest), ());
-                    graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(&condbr.false_dest), ());
-                },
+                    graph.add_edge(
+                        CFGNode::Block(&bb.name),
+                        CFGNode::Block(&condbr.true_dest),
+                        (),
+                    );
+                    graph.add_edge(
+                        CFGNode::Block(&bb.name),
+                        CFGNode::Block(&condbr.false_dest),
+                        (),
+                    );
+                }
                 Terminator::IndirectBr(ibr) => {
                     for dest in &ibr.possible_dests {
                         graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(dest), ());
                     }
-                },
+                }
                 Terminator::Switch(switch) => {
-                    graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(&switch.default_dest), ());
+                    graph.add_edge(
+                        CFGNode::Block(&bb.name),
+                        CFGNode::Block(&switch.default_dest),
+                        (),
+                    );
                     for (_, dest) in &switch.dests {
                         graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(dest), ());
                     }
-                },
+                }
                 Terminator::Ret(_) | Terminator::Resume(_) => {
                     graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Return, ());
                 }
                 Terminator::Invoke(invoke) => {
-                    graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(&invoke.return_label), ());
-                    graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(&invoke.exception_label), ());
-                },
+                    graph.add_edge(
+                        CFGNode::Block(&bb.name),
+                        CFGNode::Block(&invoke.return_label),
+                        (),
+                    );
+                    graph.add_edge(
+                        CFGNode::Block(&bb.name),
+                        CFGNode::Block(&invoke.exception_label),
+                        (),
+                    );
+                }
                 Terminator::CleanupRet(cleanupret) => {
                     if let Some(dest) = &cleanupret.unwind_dest {
                         graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(dest), ());
                     } else {
                         graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Return, ());
                     }
-                },
+                }
                 Terminator::CatchRet(catchret) => {
                     // Despite its name, my reading of the LLVM 10 LangRef indicates that CatchRet cannot directly return from the function
-                    graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(&catchret.successor), ());
-                },
+                    graph.add_edge(
+                        CFGNode::Block(&bb.name),
+                        CFGNode::Block(&catchret.successor),
+                        (),
+                    );
+                }
                 Terminator::CatchSwitch(catchswitch) => {
                     if let Some(dest) = &catchswitch.default_unwind_dest {
                         graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(dest), ());
@@ -91,12 +115,12 @@ impl<'m> ControlFlowGraph<'m> {
                     for handler in &catchswitch.catch_handlers {
                         graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(handler), ());
                     }
-                },
+                }
                 #[cfg(not(feature = "llvm-8"))]
                 Terminator::CallBr(_) => unimplemented!("CallBr instruction"),
                 Terminator::Unreachable(_) => {
                     // no successors
-                },
+                }
             }
         }
 
@@ -117,14 +141,20 @@ impl<'m> ControlFlowGraph<'m> {
         self.preds_of_cfgnode(CFGNode::Return)
     }
 
-    pub(crate) fn preds_of_cfgnode<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = &'m Name> + 's {
+    pub(crate) fn preds_of_cfgnode<'s>(
+        &'s self,
+        node: CFGNode<'m>,
+    ) -> impl Iterator<Item = &'m Name> + 's {
         self.preds_as_nodes(node).map(|cfgnode| match cfgnode {
             CFGNode::Block(block) => block,
             CFGNode::Return => panic!("Shouldn't have CFGNode::Return as a predecessor"), // perhaps you tried to call this on a reversed CFG? In-crate users can use `preds_as_nodes()` if they need to account for the possibility of a reversed CFG
         })
     }
 
-    pub(crate) fn preds_as_nodes<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = CFGNode<'m>> + 's {
+    pub(crate) fn preds_as_nodes<'s>(
+        &'s self,
+        node: CFGNode<'m>,
+    ) -> impl Iterator<Item = CFGNode<'m>> + 's {
         self.graph.neighbors_directed(node, Direction::Incoming)
     }
 
@@ -132,7 +162,8 @@ impl<'m> ControlFlowGraph<'m> {
     /// Here, `CFGNode::Return` indicates that the function may directly return
     /// from this basic block.
     pub fn succs<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = CFGNode<'m>> + 's {
-        self.graph.neighbors_directed(CFGNode::Block(block), Direction::Outgoing)
+        self.graph
+            .neighbors_directed(CFGNode::Block(block), Direction::Outgoing)
     }
 
     /// Get the `Name` of the entry block for the function
@@ -146,9 +177,7 @@ impl<'m> ControlFlowGraph<'m> {
     /// Get the reversed CFG; i.e., the CFG where all edges have been reversed
     pub(crate) fn reversed(&self) -> Self {
         Self {
-            graph: DiGraphMap::from_edges(
-                self.graph.all_edges().map(|(a, b, _)| (b, a, ()))
-            ),
+            graph: DiGraphMap::from_edges(self.graph.all_edges().map(|(a, b, _)| (b, a, ()))),
             entry_node: CFGNode::Return,
         }
     }

@@ -18,7 +18,9 @@ fn begin_panic_cfg() {
     let module = Module::from_bc_path(PANIC_BC_PATH)
         .unwrap_or_else(|e| panic!("Failed to parse module: {}", e));
     let analysis = ModuleAnalysis::new(&module);
-    let cfg = analysis.fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E").control_flow_graph();
+    let cfg = analysis
+        .fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E")
+        .control_flow_graph();
 
     // CFG:
     //         start
@@ -147,28 +149,67 @@ fn begin_panic_domtree() {
     assert_eq!(domtree.idom(&Name::from("start")), None);
     assert_eq!(domtree.idom(&Name::from("bb1")), Some(&Name::from("bb6")));
     assert_eq!(domtree.idom(&Name::from("bb2")), Some(&Name::from("start")));
-    assert_eq!(domtree.idom(&Name::from("bb3")), Some(&Name::from("cleanup1")));
+    assert_eq!(
+        domtree.idom(&Name::from("bb3")),
+        Some(&Name::from("cleanup1"))
+    );
     assert_eq!(domtree.idom(&Name::from("bb4")), Some(&Name::from("bb2")));
     assert_eq!(domtree.idom(&Name::from("bb5")), Some(&Name::from("bb6")));
     assert_eq!(domtree.idom(&Name::from("bb6")), Some(&Name::from("start")));
-    assert_eq!(domtree.idom(&Name::from("cleanup")), Some(&Name::from("start")));
-    assert_eq!(domtree.idom(&Name::from("cleanup1")), Some(&Name::from("bb2")));
-    assert_eq!(domtree.idom(&Name::from("unreachable")), Some(&Name::from("bb4")));
+    assert_eq!(
+        domtree.idom(&Name::from("cleanup")),
+        Some(&Name::from("start"))
+    );
+    assert_eq!(
+        domtree.idom(&Name::from("cleanup1")),
+        Some(&Name::from("bb2"))
+    );
+    assert_eq!(
+        domtree.idom(&Name::from("unreachable")),
+        Some(&Name::from("bb4"))
+    );
 
     let postdomtree = fn_analysis.postdominator_tree();
     // especially relevant for postdomtree (and CDG below): our algorithm
     // doesn't consider unreachable blocks, so postdominators are calculated
     // considering only the subset of the CFG which is reachable.
     // This seems like a feature and not a bug.
-    assert_eq!(postdomtree.ipostdom(&Name::from("start")), Some(CFGNode::Block(&Name::from("bb6"))));
-    assert_eq!(postdomtree.ipostdom(&Name::from("bb1")), Some(CFGNode::Return));
-    assert_eq!(postdomtree.ipostdom(&Name::from("bb2")), Some(CFGNode::Block(&Name::from("cleanup1"))));
-    assert_eq!(postdomtree.ipostdom(&Name::from("bb3")), Some(CFGNode::Block(&Name::from("bb6"))));
-    assert_eq!(postdomtree.ipostdom(&Name::from("bb4")), Some(CFGNode::Block(&Name::from("cleanup1"))));
-    assert_eq!(postdomtree.ipostdom(&Name::from("bb5")), Some(CFGNode::Block(&Name::from("bb1"))));
-    assert_eq!(postdomtree.ipostdom(&Name::from("bb6")), Some(CFGNode::Block(&Name::from("bb1"))));
-    assert_eq!(postdomtree.ipostdom(&Name::from("cleanup")), Some(CFGNode::Block(&Name::from("bb6"))));
-    assert_eq!(postdomtree.ipostdom(&Name::from("cleanup1")), Some(CFGNode::Block(&Name::from("bb3"))));
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("start")),
+        Some(CFGNode::Block(&Name::from("bb6")))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("bb1")),
+        Some(CFGNode::Return)
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("bb2")),
+        Some(CFGNode::Block(&Name::from("cleanup1")))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("bb3")),
+        Some(CFGNode::Block(&Name::from("bb6")))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("bb4")),
+        Some(CFGNode::Block(&Name::from("cleanup1")))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("bb5")),
+        Some(CFGNode::Block(&Name::from("bb1")))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("bb6")),
+        Some(CFGNode::Block(&Name::from("bb1")))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("cleanup")),
+        Some(CFGNode::Block(&Name::from("bb6")))
+    );
+    assert_eq!(
+        postdomtree.ipostdom(&Name::from("cleanup1")),
+        Some(CFGNode::Block(&Name::from("bb3")))
+    );
     assert_eq!(postdomtree.ipostdom(&Name::from("unreachable")), None);
 }
 
@@ -199,17 +240,57 @@ fn begin_panic_cdg() {
     //     |
     //   (ret)
 
-    let cdg = analysis.fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E").control_dependence_graph();
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("start")).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb1")).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb2")).collect::<Vec<_>>(), vec![&Name::from("start")]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb3")).collect::<Vec<_>>(), vec![&Name::from("start")]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb4")).collect::<Vec<_>>(), vec![&Name::from("bb2")]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb5")).collect::<Vec<_>>(), vec![&Name::from("bb6")]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("bb6")).count(), 0);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("cleanup")).collect::<Vec<_>>(), vec![&Name::from("start")]);
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("cleanup1")).collect::<Vec<_>>(), vec![&Name::from("start")]);
+    let cdg = analysis
+        .fn_analysis("_ZN3std9panicking11begin_panic17h5ae0871c3ba84f98E")
+        .control_dependence_graph();
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("start"))
+            .count(),
+        0
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("bb1")).count(),
+        0
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("bb2"))
+            .collect::<Vec<_>>(),
+        vec![&Name::from("start")]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("bb3"))
+            .collect::<Vec<_>>(),
+        vec![&Name::from("start")]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("bb4"))
+            .collect::<Vec<_>>(),
+        vec![&Name::from("bb2")]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("bb5"))
+            .collect::<Vec<_>>(),
+        vec![&Name::from("bb6")]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("bb6")).count(),
+        0
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("cleanup"))
+            .collect::<Vec<_>>(),
+        vec![&Name::from("start")]
+    );
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("cleanup1"))
+            .collect::<Vec<_>>(),
+        vec![&Name::from("start")]
+    );
     // our algorithm doesn't consider unreachable blocks, so they are reported
     // as having no control dependencies
-    assert_eq!(cdg.get_imm_control_dependencies(&Name::from("unreachable")).count(), 0);
+    assert_eq!(
+        cdg.get_imm_control_dependencies(&Name::from("unreachable"))
+            .count(),
+        0
+    );
 }

@@ -92,7 +92,10 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
             changed = false;
             for block in Dfs::new(&self.cfg.graph, self.cfg.entry_node).iter(&self.cfg.graph) {
                 let idom = self.compute_idom(block);
-                let prev_idom = self.idoms.get_mut(&block).expect("All nodes in the dfs should have an initialized idom by now");
+                let prev_idom = self
+                    .idoms
+                    .get_mut(&block)
+                    .expect("All nodes in the dfs should have an initialized idom by now");
                 if idom != *prev_idom {
                     *prev_idom = idom;
                     changed = true;
@@ -101,7 +104,9 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
         }
 
         DiGraphMap::from_edges(
-            self.idoms.into_iter().filter_map(|(block, idom)| Some((idom?, block)))
+            self.idoms
+                .into_iter()
+                .filter_map(|(block, idom)| Some((idom?, block))),
         )
     }
 
@@ -115,7 +120,8 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
             return None;
         }
         // technically speaking, these are just the reachable preds which already have an idom estimate
-        let mut reachable_preds = self.cfg
+        let mut reachable_preds = self
+            .cfg
             .preds_as_nodes(block)
             .filter(|block| self.idoms.contains_key(block));
 
@@ -133,19 +139,17 @@ impl<'m, 'a> DomTreeBuilder<'m, 'a> {
     /// Compute the common dominator of two nodes.
     ///
     /// Both nodes are assumed to be reachable.
-    fn common_dominator(
-        &self,
-        mut node_a: CFGNode<'m>,
-        mut node_b: CFGNode<'m>,
-    ) -> CFGNode<'m> {
+    fn common_dominator(&self, mut node_a: CFGNode<'m>, mut node_b: CFGNode<'m>) -> CFGNode<'m> {
         loop {
             match self.rpo_numbers[&node_a].cmp(&self.rpo_numbers[&node_b]) {
                 Ordering::Less => {
-                    node_b = self.idoms[&node_b].expect("entry node should have the smallest rpo number");
-                },
+                    node_b = self.idoms[&node_b]
+                        .expect("entry node should have the smallest rpo number");
+                }
                 Ordering::Greater => {
-                    node_a = self.idoms[&node_a].expect("entry node should have the smallest rpo number");
-                },
+                    node_a = self.idoms[&node_a]
+                        .expect("entry node should have the smallest rpo number");
+                }
                 Ordering::Equal => break,
             }
         }
@@ -173,14 +177,18 @@ impl<'m> DominatorTree<'m> {
     ///   - Of the blocks that strictly dominate bbY, bbX is the closest to bbY
     ///     (farthest from entry) along paths from the entry block to bbY
     pub fn idom(&self, block: &'m Name) -> Option<&'m Name> {
-        let mut parents = self.graph.neighbors_directed(CFGNode::Block(block), Direction::Incoming);
+        let mut parents = self
+            .graph
+            .neighbors_directed(CFGNode::Block(block), Direction::Incoming);
         let idom = parents.next()?;
         if let Some(_) = parents.next() {
             panic!("Block {:?} should have only one immediate dominator", block);
         }
         match idom {
             CFGNode::Block(block) => Some(block),
-            CFGNode::Return => panic!("Return node shouldn't be the immediate dominator of anything"),
+            CFGNode::Return => {
+                panic!("Return node shouldn't be the immediate dominator of anything")
+            }
         }
     }
 
@@ -197,7 +205,9 @@ impl<'m> DominatorTree<'m> {
     /// function), then the return node has no immediate dominator, and `None` will
     /// be returned.
     pub fn idom_of_return(&self) -> Option<&'m Name> {
-        let mut parents = self.graph.neighbors_directed(CFGNode::Return, Direction::Incoming);
+        let mut parents = self
+            .graph
+            .neighbors_directed(CFGNode::Return, Direction::Incoming);
         let idom = parents.next()?;
         if let Some(_) = parents.next() {
             panic!("Return node should have only one immediate dominator");
@@ -213,7 +223,8 @@ impl<'m> DominatorTree<'m> {
     ///
     /// See notes on `idom()`.
     pub fn children<'s>(&'s self, block: &'m Name) -> impl Iterator<Item = CFGNode<'m>> + 's {
-        self.graph.neighbors_directed(CFGNode::Block(block), Direction::Outgoing)
+        self.graph
+            .neighbors_directed(CFGNode::Block(block), Direction::Outgoing)
     }
 
     /// Does `node_a` dominate `node_b`?
@@ -276,7 +287,10 @@ impl<'m> PostDominatorTree<'m> {
         let mut parents = self.graph.neighbors_directed(node, Direction::Incoming);
         let ipostdom = parents.next()?;
         if let Some(_) = parents.next() {
-            panic!("Block {:?} should have only one immediate postdominator", node);
+            panic!(
+                "Block {:?} should have only one immediate postdominator",
+                node
+            );
         }
         Some(ipostdom)
     }
@@ -289,7 +303,10 @@ impl<'m> PostDominatorTree<'m> {
         self.children_of_cfgnode(CFGNode::Block(block))
     }
 
-    pub(crate) fn children_of_cfgnode<'s>(&'s self, node: CFGNode<'m>) -> impl Iterator<Item = CFGNode<'m>> + 's {
+    pub(crate) fn children_of_cfgnode<'s>(
+        &'s self,
+        node: CFGNode<'m>,
+    ) -> impl Iterator<Item = CFGNode<'m>> + 's {
         self.graph.neighbors_directed(node, Direction::Outgoing)
     }
 
@@ -298,10 +315,14 @@ impl<'m> PostDominatorTree<'m> {
     ///
     /// See notes on `ipostdom()`.
     pub fn children_of_return<'s>(&'s self) -> impl Iterator<Item = &'m Name> + 's {
-        self.graph.neighbors_directed(CFGNode::Return, Direction::Outgoing).map(|child| match child {
-            CFGNode::Block(block) => block,
-            CFGNode::Return => panic!("Return node shouldn't be the immediate postdominator of itself"),
-        })
+        self.graph
+            .neighbors_directed(CFGNode::Return, Direction::Outgoing)
+            .map(|child| match child {
+                CFGNode::Block(block) => block,
+                CFGNode::Return => {
+                    panic!("Return node shouldn't be the immediate postdominator of itself")
+                }
+            })
     }
 
     /// Does `node_a` postdominate `node_b`?
