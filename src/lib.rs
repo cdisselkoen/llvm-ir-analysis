@@ -20,6 +20,10 @@ use log::debug;
 use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 
+// Re-export the llvm-ir crate so that our consumers can have only one Cargo.toml entry and don't
+// have to worry about matching versions.
+pub use llvm_ir;
+
 /// Computes (and caches the results of) various analyses on a given `Module`
 pub struct ModuleAnalysis<'m> {
     /// Reference to the `llvm-ir` `Module`
