@@ -116,7 +116,6 @@ impl<'m> ControlFlowGraph<'m> {
                         graph.add_edge(CFGNode::Block(&bb.name), CFGNode::Block(handler), ());
                     }
                 }
-                #[cfg(not(feature = "llvm-8"))]
                 Terminator::CallBr(_) => unimplemented!("CallBr instruction"),
                 Terminator::Unreachable(_) => {
                     // no successors

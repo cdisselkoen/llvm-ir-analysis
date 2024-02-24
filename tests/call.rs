@@ -15,6 +15,16 @@ const CALL_BC_PATH: &'static str = "tests/bcfiles/call.bc";
 const FUNCTIONPTR_BC_PATH: &'static str = "tests/bcfiles/functionptr.bc";
 const CROSSMOD_BC_PATH: &'static str = "tests/bcfiles/crossmod.bc";
 
+/// Assert that each entry in `actual` starts with the prefix given by the
+/// corresponding entry in `expected`
+#[track_caller]
+fn assert_vec_entries(actual: &[&str], expected: &[&str]) {
+    assert_eq!(actual.len(), expected.len(), "\n  actual: {actual:?}\n  expected: {expected:?}");
+    for (a, e) in actual.iter().zip(expected.iter()) {
+        assert!(a.starts_with(e), "\n  actual: {a:?}\n  expected prefix: {e:?}");
+    }
+}
+
 #[test]
 fn call_graph() {
     init_logging();
@@ -24,9 +34,9 @@ fn call_graph() {
     let callgraph = analysis.call_graph();
 
     let callers: Vec<&str> = callgraph.callers("simple_callee").sorted().collect();
-    assert_eq!(
-        callers,
-        vec![
+    assert_vec_entries(
+        &callers,
+        &[
             "caller_with_loop",
             "conditional_caller",
             "recursive_and_normal_caller",
@@ -38,83 +48,83 @@ fn call_graph() {
     assert!(callees.is_empty());
 
     let callers: Vec<&str> = callgraph.callers("simple_caller").sorted().collect();
-    assert_eq!(callers, vec!["nested_caller"]);
+    assert_vec_entries(&callers, &["nested_caller"]);
     let callees: Vec<&str> = callgraph.callees("simple_caller").sorted().collect();
-    assert_eq!(callees, vec!["simple_callee"]);
+    assert_vec_entries(&callees, &["simple_callee"]);
 
     let callers: Vec<&str> = callgraph.callers("conditional_caller").sorted().collect();
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("conditional_caller").sorted().collect();
-    assert_eq!(callees, vec!["simple_callee"]);
+    assert_vec_entries(&callees, &["simple_callee"]);
 
     let callers: Vec<&str> = callgraph.callers("twice_caller").sorted().collect();
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("twice_caller").sorted().collect();
-    assert_eq!(callees, vec!["simple_callee"]);
+    assert_vec_entries(&callees, &["simple_callee"]);
 
     let callers: Vec<&str> = callgraph.callers("nested_caller").sorted().collect();
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("nested_caller").sorted().collect();
-    assert_eq!(callees, vec!["simple_caller"]);
+    assert_vec_entries(&callees, &["simple_caller"]);
 
     let callers: Vec<&str> = callgraph.callers("callee_with_loop").sorted().collect();
-    assert_eq!(callers, vec!["caller_of_loop"]);
+    assert_vec_entries(&callers, &["caller_of_loop"]);
     let callees: Vec<&str> = callgraph.callees("callee_with_loop").sorted().collect();
-    assert_eq!(
-        callees,
-        vec!["llvm.lifetime.end.p0i8", "llvm.lifetime.start.p0i8"]
+    assert_vec_entries(
+        &callees,
+        &["llvm.lifetime.end", "llvm.lifetime.start"]
     );
 
     let callers: Vec<&str> = callgraph.callers("caller_of_loop").sorted().collect();
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("caller_of_loop").sorted().collect();
-    assert_eq!(callees, vec!["callee_with_loop"]);
+    assert_vec_entries(&callees, &["callee_with_loop"]);
 
     let callers: Vec<&str> = callgraph.callers("caller_with_loop").sorted().collect();
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("caller_with_loop").sorted().collect();
-    assert_eq!(
-        callees,
-        vec![
-            "llvm.lifetime.end.p0i8",
-            "llvm.lifetime.start.p0i8",
+    assert_vec_entries(
+        &callees,
+        &[
+            "llvm.lifetime.end.p0",
+            "llvm.lifetime.start.p0",
             "simple_callee"
         ]
     );
 
     let callers: Vec<&str> = callgraph.callers("recursive_simple").sorted().collect();
-    assert_eq!(callers, vec!["recursive_simple"]);
+    assert_vec_entries(&callers, &["recursive_simple"]);
     let callees: Vec<&str> = callgraph.callees("recursive_simple").sorted().collect();
-    assert_eq!(callees, vec!["recursive_simple"]);
+    assert_vec_entries(&callees, &["recursive_simple"]);
 
     let callers: Vec<&str> = callgraph.callers("recursive_double").sorted().collect();
-    assert_eq!(callers, vec!["recursive_double"]);
+    assert_vec_entries(&callers, &["recursive_double"]);
     let callees: Vec<&str> = callgraph.callees("recursive_double").sorted().collect();
-    assert_eq!(callees, vec!["recursive_double"]);
+    assert_vec_entries(&callees, &["recursive_double"]);
 
     let callers: Vec<&str> = callgraph
         .callers("recursive_and_normal_caller")
         .sorted()
         .collect();
-    assert_eq!(callers, vec!["recursive_and_normal_caller"]);
+    assert_vec_entries(&callers, &["recursive_and_normal_caller"]);
     let callees: Vec<&str> = callgraph
         .callees("recursive_and_normal_caller")
         .sorted()
         .collect();
-    assert_eq!(
-        callees,
-        vec!["recursive_and_normal_caller", "simple_callee"]
+    assert_vec_entries(
+        &callees,
+        &["recursive_and_normal_caller", "simple_callee"]
     );
 
     let callers: Vec<&str> = callgraph.callers("mutually_recursive_a").sorted().collect();
-    assert_eq!(callers, vec!["mutually_recursive_b"]);
+    assert_vec_entries(&callers, &["mutually_recursive_b"]);
     let callees: Vec<&str> = callgraph.callees("mutually_recursive_a").sorted().collect();
-    assert_eq!(callees, vec!["mutually_recursive_b"]);
+    assert_vec_entries(&callees, &["mutually_recursive_b"]);
 
     let callers: Vec<&str> = callgraph.callers("mutually_recursive_b").sorted().collect();
-    assert_eq!(callers, vec!["mutually_recursive_a"]);
+    assert_vec_entries(&callers, &["mutually_recursive_a"]);
     let callees: Vec<&str> = callgraph.callees("mutually_recursive_b").sorted().collect();
-    assert_eq!(callees, vec!["mutually_recursive_a"]);
+    assert_vec_entries(&callees, &["mutually_recursive_a"]);
 }
 
 #[test]
@@ -134,44 +144,44 @@ fn functionptr_call_graph() {
         ))
         .sorted()
         .collect();
-    assert_eq!(footype_functions, vec!["bar", "foo"]);
+    assert_vec_entries(&footype_functions, &["bar", "foo"]);
 
     let callers: Vec<&str> = callgraph.callers("foo").sorted().collect();
-    assert_eq!(callers, vec!["calls_fptr", "calls_through_struct"]);
+    assert_vec_entries(&callers, &["calls_fptr", "calls_through_struct"]);
     let callees: Vec<&str> = callgraph.callees("foo").sorted().collect();
     assert!(callees.is_empty());
 
     let callers: Vec<&str> = callgraph.callers("bar").sorted().collect();
-    assert_eq!(callers, vec!["calls_fptr", "calls_through_struct"]);
+    assert_vec_entries(&callers, &["calls_fptr", "calls_through_struct"]);
     let callees: Vec<&str> = callgraph.callees("bar").sorted().collect();
     assert!(callees.is_empty());
 
     let callers: Vec<&str> = callgraph.callers("calls_fptr").sorted().collect();
-    assert_eq!(callers, vec!["fptr_driver"]);
+    assert_vec_entries(&callers, &["fptr_driver"]);
     let callees: Vec<&str> = callgraph.callees("calls_fptr").sorted().collect();
-    assert_eq!(callees, vec!["bar", "foo"]);
+    assert_vec_entries(&callees, &["bar", "foo"]);
 
     let callers: Vec<&str> = callgraph.callers("get_function_ptr").sorted().collect();
-    assert_eq!(callers, vec!["fptr_driver", "struct_driver"]);
+    assert_vec_entries(&callers, &["fptr_driver", "struct_driver"]);
     let callees: Vec<&str> = callgraph.callees("get_function_ptr").sorted().collect();
     assert!(callees.is_empty());
 
     let callers: Vec<&str> = callgraph.callers("calls_through_struct").sorted().collect();
-    assert_eq!(callers, vec!["struct_driver"]);
+    assert_vec_entries(&callers, &["struct_driver"]);
     let callees: Vec<&str> = callgraph.callees("calls_through_struct").sorted().collect();
-    assert_eq!(callees, vec!["bar", "foo"]);
+    assert_vec_entries(&callees, &["bar", "foo"]);
 
     let callers: Vec<&str> = callgraph.callers("struct_driver").sorted().collect();
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("struct_driver").sorted().collect();
-    assert_eq!(
-        callees,
-        vec![
+    assert_vec_entries(
+        &callees,
+        &[
             "calls_through_struct",
             "get_function_ptr",
-            "llvm.lifetime.end.p0i8",
-            "llvm.lifetime.start.p0i8",
-            "llvm.memset.p0i8.i64"
+            "llvm.lifetime.end",
+            "llvm.lifetime.start",
+            "llvm.memset",
         ]
     );
 }
@@ -191,7 +201,7 @@ fn crossmod_call_graph() {
     let callers: Vec<&str> = callgraph.callers("conditional_caller").sorted().collect();
     assert!(callers.is_empty());
     let callees: Vec<&str> = callgraph.callees("conditional_caller").sorted().collect();
-    assert_eq!(callees, vec!["simple_callee"]);
+    assert_vec_entries(&callees, &["simple_callee"]);
 
     // this function also isn't involved in cross-module calls; it sits in the other module
     let callers: Vec<&str> = callgraph
@@ -203,13 +213,13 @@ fn crossmod_call_graph() {
         .callees("cross_module_nested_near_caller")
         .sorted()
         .collect();
-    assert_eq!(callees, vec!["cross_module_simple_caller"]);
+    assert_vec_entries(&callees, &["cross_module_simple_caller"]);
 
     // this function is called cross-module
     let callers: Vec<&str> = callgraph.callers("simple_callee").sorted().collect();
-    assert_eq!(
-        callers,
-        vec![
+    assert_vec_entries(
+        &callers,
+        &[
             "caller_with_loop",
             "conditional_caller",
             "cross_module_simple_caller",

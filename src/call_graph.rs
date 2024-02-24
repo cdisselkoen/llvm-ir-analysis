@@ -3,7 +3,7 @@ use either::Either;
 use llvm_ir::{
     instruction::{Call, InlineAssembly},
     terminator::Invoke,
-    Constant, Instruction, Module, Operand, Terminator, TypeRef,
+    Constant, Instruction, Module, Name, Operand, Terminator, TypeRef,
 };
 use petgraph::prelude::*;
 
@@ -31,8 +31,11 @@ impl<'m> CallGraph<'m> {
             match call.callee() {
                 Either::Right(Operand::ConstantOperand(cref)) => {
                     match cref.as_ref() {
-                        Constant::GlobalReference { name, .. } => {
+                        Constant::GlobalReference { name: Name::Name(name), .. } => {
                             graph.add_edge(caller, name, ());
+                        }
+                        Constant::GlobalReference { name, .. } => {
+                            unimplemented!("Call of a function with a numbered name: {name:?}")
                         }
                         _ => {
                             // a constant function pointer.
