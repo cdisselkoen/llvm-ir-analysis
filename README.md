@@ -35,6 +35,8 @@ You'll also need some LLVM IR to analyze, in the form of an [`llvm-ir`]
 [`Module`] or [`Function`].
 This can be easily generated from an LLVM bitcode file; for more detailed
 instructions, see [`llvm-ir`'s README](https://crates.io/crates/llvm-ir).
+(For convenience, this crate exports all of `llvm-ir`'s interface as a module
+`llvm-ir`.)
 
 Once you have a `Module`, you can construct a [`ModuleAnalysis`] object:
 ```rust
