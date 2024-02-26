@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      -main
+  pull_request:
+
+jobs:
+  test:
+    name: Test for LLVM ${{ matrix.llvm }}
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        llvm:
+        - 9
+        - 10
+        - 11
+        - 12
+        - 13
+        - 14
+        - 15
+        - 16
+        - 17
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Install LLVM ${{ matrix.llvm }}
+        run: curl https://apt.llvm.org/llvm.sh | sudo bash -s -- ${{ matrix.llvm }}
+      - name: Install Polly ${{ matrix.llvm }}
+        run: sudo apt-get install -y libpolly-${{ matrix.llvm }}-dev
+        if: matrix.llvm >= 14
+      - name: Install zstd
+        run: sudo apt-get install -y libzstd-dev
+        if: matrix.llvm >= 16
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Build and Test Debug
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features=llvm-${{ matrix.llvm }},strict-versioning
+      - name: Build and Test Release
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --features=llvm-${{ matrix.llvm }},strict-versioning
