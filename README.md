@@ -24,10 +24,10 @@ so you can simply add it as a dependency in your `Cargo.toml`, selecting the
 feature corresponding to the LLVM version you want:
 ```toml
 [dependencies]
-llvm-ir-analysis = { version = "0.3.2", features = ["llvm-14"] }
+llvm-ir-analysis = { version = "0.3.2", features = ["llvm-17"] }
 ```
-Currently, the supported LLVM versions are `llvm-8`, `llvm-9`, `llvm-10`,
-`llvm-11`, `llvm-12`, `llvm-13`, and `llvm-14`.
+Currently, the supported LLVM versions are `llvm-9`, `llvm-10`, `llvm-11`,
+`llvm-12`, `llvm-13`, `llvm-14`, `llvm-15`, `llvm-16`, and `llvm-17`.
 The corresponding LLVM library must be available on your system; see the
 [`llvm-sys`] README for more details and instructions.
 
@@ -53,6 +53,16 @@ call graph by starting with a [`CrossModuleAnalysis`] instead of just
 a [`ModuleAnalysis`]. The [`CrossModuleAnalysis`] also provides a
 [`ModuleAnalysis`] for each of the included modules, again computed
 lazily on demand.
+
+## Compatibility
+
+`llvm-ir-analysis` supports the LLVM versions listed above under "Getting Started".
+You should select the LLVM version corresponding to the version of the LLVM
+library you are linking against (i.e., that is available on your system).
+For more on compatibility with older LLVMs (and bitcode produced by older
+LLVMs), see the [`llvm-ir`] README.
+
+`llvm-ir-analysis` works on stable Rust. As of this writing, it requires Rust 1.71+.
 
 [`llvm-ir`]: https://crates.io/crates/llvm-ir
 [`llvm-sys`]: https://crates.io/crates/llvm-sys
