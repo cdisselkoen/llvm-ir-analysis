@@ -43,9 +43,11 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features=llvm-${{ matrix.llvm }},strict-versioning
+          ## LLVM 11 doesn't work with strict-versioning, see llvm-ir#53
+          args: ${{ format('--features=llvm-{0}{1}', matrix.llvm, matrix.llvm != '11' && ',strict-versioning' || '') }}
       - name: Build and Test Release
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release --features=llvm-${{ matrix.llvm }},strict-versioning
+          ## LLVM 11 doesn't work with strict-versioning, see llvm-ir#53
+          args: ${{ format('--release --features=llvm-{0}{1}', matrix.llvm, matrix.llvm != '11' && ',strict-versioning' || '') }}
